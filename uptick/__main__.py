@@ -12,6 +12,7 @@ from bitsharesbase.account import PrivateKey, PublicKey, Address
 from bitshares.storage import configStorage as config
 from bitshares.bitshares import BitShares
 from bitshares.amount import Amount
+from bitshares.account import Account
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 import logging
@@ -179,7 +180,6 @@ def main():
     """
     listaccounts = subparsers.add_parser('listaccounts', help='List available accounts in your wallet')
     listaccounts.set_defaults(command="listaccounts")
-
 
     """
         Command "transfer"
@@ -671,8 +671,7 @@ def main():
                     t.align = "l"
                     for key in sorted(account):
                         value = account[key]
-                        if (key == "active" or
-                                key == "owner"):
+                        if key in ["active", "owner", "options"]:
                             value = json.dumps(value, indent=4)
                         t.add_row([key, value])
                     print(t)
@@ -766,18 +765,17 @@ def main():
     elif args.command == "balance":
         t = PrettyTable(["Account", "Amount", "Asset"])
         t.align = "r"
-        if isinstance(args.account, str):
-            args.account = [args.account]
         for a in args.account:
-            balances = bitshares.get_balances(a)
-            for b in balances:
+            account = Account(a)
+            for b in account.balances:
                 t.add_row([
-                    a,
-                    b.asset,
+                    str(a),
                     b.amount,
+                    b.symbol,
                 ])
         print(t)
 
+"""
     elif args.command == "history":
         header = ["#", "time (block)", "operation", "details"]
         if args.csv:
@@ -960,11 +958,6 @@ def main():
             g.title("DEX - {quote}:{base}".format(quote=quote, base=base))
             g.xlabel("price in %s/%s" % (base, quote))
             g.ylabel("volume")
-            g("""
-                set style data line
-                set term xterm
-                set border 15
-            """)
             xbids = [x["price"] for x in orderbook["bids"]]
             ybids = list(accumulate([x["fixme"] for x in orderbook["bids"]]))
             dbids = Gnuplot.Data(xbids, ybids, with_="lines")
@@ -1033,6 +1026,7 @@ def main():
 
     else:
         print("No valid command given")
+"""
 
 
 args = None
