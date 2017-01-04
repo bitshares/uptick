@@ -1,0 +1,3 @@
+websockets==2.0
+uptick
+sphinx_rtd_theme
