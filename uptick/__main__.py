@@ -312,9 +312,9 @@ def main():
     parser_allow.add_argument(
         '--permission',
         type=str,
-        default="posting",
-        choices=["owner", "posting", "active"],
-        help=('The permission to grant (defaults to "posting")')
+        default="active",
+        choices=["owner", "active"],
+        help=('The permission to grant (defaults to "active")')
     )
     parser_allow.add_argument(
         '--weight',
@@ -352,9 +352,9 @@ def main():
     parser_disallow.add_argument(
         '--permission',
         type=str,
-        default="posting",
-        choices=["owner", "posting", "active"],
-        help=('The permission to remove (defaults to "posting")')
+        default="active",
+        choices=["owner", "active"],
+        help=('The permission to remove (defaults to "active")')
     )
     parser_disallow.add_argument(
         '--threshold',
@@ -396,8 +396,8 @@ def main():
         '--roles',
         type=str,
         nargs="*",
-        default=["active", "posting", "memo"],  # no owner
-        help='Import specified keys (owner, active, posting, memo)'
+        default=["active", "memo"],  # no owner
+        help='Import specified keys (owner, active, memo)'
     )
 
     """
@@ -753,6 +753,8 @@ def main():
             ])
         print(t)
 
+    # Actual BitShares Related sub commands
+    ##################################################################
     elif args.command == "transfer":
         pprint(bitshares.transfer(
             args.to,
@@ -775,7 +777,48 @@ def main():
                 ])
         print(t)
 
+    elif args.command == "permissions":
+        account = bitshares.rpc.get_account(args.account)
+        print_permissions(account)
+
+    elif args.command == "allow":
+        if not args.foreign_account:
+            from bitsharesbase.account import PasswordKey
+            pwd = get_terminal(text="Password for Key Derivation: ", confirm=True)
+            args.foreign_account = format(PasswordKey(args.account, pwd, args.permission).get_public(), "STM")
+        pprint(bitshares.allow(
+            args.foreign_account,
+            weight=args.weight,
+            account=args.account,
+            permission=args.permission,
+            threshold=args.threshold
+        ))
+
+    elif args.command == "disallow":
+        pprint(bitshares.disallow(
+            args.foreign_account,
+            account=args.account,
+            permission=args.permission,
+            threshold=args.threshold
+        ))
+
 """
+    elif args.command == "updatememokey":
+        if not args.key:
+            # Loop until both match
+            from bitsharesbase.account import PasswordKey
+            pw = get_terminal(text="Password for Memo Key: ", confirm=True, allowedempty=False)
+            memo_key = PasswordKey(args.account, pw, "memo")
+            args.key = format(memo_key.get_public_key(), "STM")
+            memo_privkey = memo_key.get_private_key()
+            # Add the key to the wallet
+            if not args.nobroadcast:
+                bitshares.wallet.addPrivateKey(memo_privkey)
+        pprint(bitshares.update_memo_key(
+            args.key,
+            account=args.account
+        ))
+
     elif args.command == "history":
         header = ["#", "time (block)", "operation", "details"]
         if args.csv:
@@ -811,46 +854,6 @@ def main():
         if not args.csv:
             print(t)
 
-    elif args.command == "permissions":
-        account = bitshares.rpc.get_account(args.account)
-        print_permissions(account)
-
-    elif args.command == "allow":
-        if not args.foreign_account:
-            from bitsharesbase.account import PasswordKey
-            pwd = get_terminal(text="Password for Key Derivation: ", confirm=True)
-            args.foreign_account = format(PasswordKey(args.account, pwd, args.permission).get_public(), "STM")
-        pprint(bitshares.allow(
-            args.foreign_account,
-            weight=args.weight,
-            account=args.account,
-            permission=args.permission,
-            threshold=args.threshold
-        ))
-
-    elif args.command == "disallow":
-        pprint(bitshares.disallow(
-            args.foreign_account,
-            account=args.account,
-            permission=args.permission,
-            threshold=args.threshold
-        ))
-
-    elif args.command == "updatememokey":
-        if not args.key:
-            # Loop until both match
-            from bitsharesbase.account import PasswordKey
-            pw = get_terminal(text="Password for Memo Key: ", confirm=True, allowedempty=False)
-            memo_key = PasswordKey(args.account, pw, "memo")
-            args.key = format(memo_key.get_public_key(), "STM")
-            memo_privkey = memo_key.get_private_key()
-            # Add the key to the wallet
-            if not args.nobroadcast:
-                bitshares.wallet.addPrivateKey(memo_privkey)
-        pprint(bitshares.update_memo_key(
-            args.key,
-            account=args.account
-        ))
 
     elif args.command == "newaccount":
         import getpass
@@ -896,15 +899,6 @@ def main():
                 print("Importing active key!")
                 active_privkey = active_key.get_private_key()
                 bitshares.wallet.addPrivateKey(active_privkey)
-                imported = True
-
-        if "posting" in args.roles:
-            posting_key = PasswordKey(args.account, password, role="posting")
-            posting_pubkey = format(posting_key.get_public_key(), "STM")
-            if posting_pubkey in [x[0] for x in account["posting"]["key_auths"]]:
-                print("Importing posting key!")
-                posting_privkey = posting_key.get_private_key()
-                bitshares.wallet.addPrivateKey(posting_privkey)
                 imported = True
 
         if "memo" in args.roles:

@@ -1,4 +1,5 @@
 import sys
+from bitshares.account import Account
 from prettytable import PrettyTable, ALL as allBorders
 
 
@@ -38,9 +39,13 @@ def print_permissions(account):
     t.align = "r"
     for permission in ["owner", "active"]:
         auths = []
-        for type_ in ["account_auths", "key_auths"]:
-            for authority in account[permission][type_]:
-                auths.append("%s (%d)" % (authority[0], authority[1]))
+        # account auths:
+        for authority in account[permission]["account_auths"]:
+            account = Account(authority[0])
+            auths.append("%s (%d)" % (account["name"], authority[1]))
+        # key auths:
+        for authority in account[permission]["key_auths"]:
+            auths.append("%s (%d)" % (authority[0], authority[1]))
         t.add_row([
             permission,
             account[permission]["weight_threshold"],
