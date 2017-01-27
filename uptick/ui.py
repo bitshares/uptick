@@ -1,3 +1,4 @@
+import json
 import sys
 from bitshares.account import Account
 from prettytable import PrettyTable, ALL as allBorders
@@ -72,3 +73,13 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
             else:
                 print("Not matching!")
     return pw
+
+
+def pprintOperation(op):
+    from bitshares.price import Order, FilledOrder
+    if op["op"][0] == 1:
+        return str(Order(op["op"][1]))
+    if op["op"][0] == 4:
+        return str(FilledOrder(op["op"][1]))
+    else:
+        return json.dumps(op["op"][1], indent=4)

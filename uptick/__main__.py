@@ -15,6 +15,7 @@ from bitshares.amount import Amount
 from bitshares.account import Account
 from bitshares.market import Market
 from bitshares.dex import Dex
+from bitshares.price import Price, Order
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 import logging
@@ -22,7 +23,8 @@ from .__version__ import __VERSION__
 from .ui import (
     confirm,
     print_permissions,
-    get_terminal
+    get_terminal,
+    pprintOperation
 )
 from bitshares.exceptions import AccountDoesNotExistsException
 
@@ -246,7 +248,7 @@ def main():
     parser_history.add_argument(
         '--limit',
         type=int,
-        default=config["limit"],
+        default=config["limit"] or 15,
         help='Limit number of entries'
     )
     parser_history.add_argument(
@@ -258,12 +260,6 @@ def main():
         '--csv',
         action='store_true',
         help='Output in CSV format'
-    )
-    parser_history.add_argument(
-        '--first',
-        type=int,
-        default=99999999999999,
-        help='Transactioon numer (#) of the last transaction to show.'
     )
     parser_history.add_argument(
         '--types',
@@ -487,6 +483,11 @@ def main():
     orderbook = subparsers.add_parser('orderbook', help='Obtain orderbook of the internal market')
     orderbook.set_defaults(command="orderbook")
     orderbook.add_argument(
+        'market',
+        help="Market to obtain orderbook for (e.g. BTS:USD)"
+    )
+
+    orderbook.add_argument(
         '--chart',
         action='store_true',
         help="Enable charting (requires matplotlib)"
@@ -498,12 +499,12 @@ def main():
     parser_buy = subparsers.add_parser('buy', help='Buy an Asset from the internal market')
     parser_buy.set_defaults(command="buy")
     parser_buy.add_argument(
-        'amount',
+        'buy_amount',
         type=float,
         help='Amount to buy'
     )
     parser_buy.add_argument(
-        'buyasset',
+        'buy_asset',
         type=str,
         help='Asset to buy'
     )
@@ -513,7 +514,7 @@ def main():
         help='Limit buy price denoted in SELLASSET/BUYASSET'
     )
     parser_buy.add_argument(
-        'sellasset',
+        'sell_asset',
         type=str,
         help='Asset to sell'
     )
@@ -531,22 +532,22 @@ def main():
     parser_sell = subparsers.add_parser('sell', help='Sell an Asset from the internal market')
     parser_sell.set_defaults(command="sell")
     parser_sell.add_argument(
-        'amount',
+        'sell_amount',
         type=float,
         help='Amount to sell'
     )
     parser_sell.add_argument(
-        'sellasset',
+        'sell_asset',
         type=str,
         help='Asset to sell'
     )
     parser_sell.add_argument(
         'price',
         type=float,
-        help='Limit buy price denoted in BUYASSET/SELLASSET'
+        help='Limit sell price denoted in SELLASSET/sellASSET'
     )
-    parser_buy.add_argument(
-        'buyasset',
+    parser_sell.add_argument(
+        'buy_asset',
         type=str,
         help='Asset to buy'
     )
@@ -555,7 +556,20 @@ def main():
         type=str,
         required=False,
         default=config["default_account"],
-        help='Sell from this account (defaults to "default_account")'
+        help='sell with this account (defaults to "default_account")'
+    )
+
+    """
+        Command "openorders"
+    """
+    parser_openorders = subparsers.add_parser('openorders', help='Open Orders of an account')
+    parser_openorders.set_defaults(command="openorders")
+    parser_openorders.add_argument(
+        'account',
+        type=str,
+        default=config["default_account"],
+        nargs='?',
+        help='Account to list open orders for'
     )
 
     """
@@ -769,7 +783,7 @@ def main():
     elif args.command == "balance":
         t = PrettyTable(["Account", "Amount", "Asset"])
         t.align = "r"
-        for a in args.account:
+        for a in args.account.split(" "):
             account = Account(a)
             for b in account.balances:
                 t.add_row([
@@ -830,6 +844,8 @@ def main():
         pprint(tx.json())
 
     elif args.command == "orderbook":
+        market = Market(args.market, bitshares_instance=bitshares)
+        orderbook = market.orderbook()
         if args.chart:
             try:
                 import numpy
@@ -838,10 +854,6 @@ def main():
             except:
                 print("To use --chart, you need gnuplot and gnuplot-py installed")
                 sys.exit(1)
-        dex = Dex(bitshares)
-        orderbook = dex.returnOrderBook()
-
-        if args.chart:
             g = Gnuplot.Gnuplot()
             g.title("DEX - {quote}:{base}".format(quote=quote, base=base))
             g.xlabel("price in %s/%s" % (base, quote))
@@ -855,55 +867,82 @@ def main():
             g("set terminal dumb")
             g.plot(dbids, dasks)  # write SVG data directly to stdout ...
 
-        t = PrettyTable(["bid FIXME", "sum bids FIXME", "bid FIXME", "sum bids FIXME",
-                         "bid price", "+", "ask price",
-                         "ask FIXME", "sum asks bitshares", "ask FIXME", "sum asks FIXME"])
-        t.align = "r"
-        bidsquote = 0
-        bidsbase = 0
-        asksquote = 0
-        asksbase = 0
-        for i, o in enumerate(orderbook["asks"]):
-            bidsbase += orderbook["bids"][i]["fixme"]
-            bidsquote += orderbook["bids"][i]["fixme"]
-            asksbase += orderbook["asks"][i]["fixme"]
-            asksquote += orderbook["asks"][i]["fixme"]
-            t.add_row([
-                "%.3f Ṩ" % orderbook["bids"][i]["sbd"],
-                "%.3f ∑" % bidsbase,
-                "%.3f ȿ" % orderbook["bids"][i]["fixme"],
-                "%.3f ∑" % bidsquote,
-                "%.3f Ṩ/ȿ" % orderbook["bids"][i]["price"],
-                "|",
-                "%.3f Ṩ/ȿ" % orderbook["asks"][i]["price"],
-                "%.3f ȿ" % orderbook["asks"][i]["fixme"],
-                "%.3f ∑" % asksquote,
-                "%.3f Ṩ" % orderbook["asks"][i]["sbd"],
-                "%.3f ∑" % asksbase])
+        ta = {}
+        ta["bids"] = PrettyTable([
+            "quote",
+            "base",
+            "price"
+        ])
+        ta["bids"].align = "r"
+        for order in orderbook["bids"]:
+            ta["bids"].add_row([
+                order["quote_amount"],
+                order["base_amount"],
+                order["price"]
+            ])
+
+        ta["asks"] = PrettyTable([
+            "price",
+            "base",
+            "quote",
+        ])
+        ta["asks"].align = "r"
+        ta["asks"].align["price"] = "l"
+        for order in orderbook["asks"]:
+            ta["asks"].add_row([
+                order["price"],
+                order["base_amount"],
+                order["quote_amount"]
+            ])
+
+        t = PrettyTable(["bids", "asks"])
+        t.add_row([str(ta["bids"]), str(ta["asks"])])
         print(t)
 
     elif args.command == "buy":
-        dex = Dex(bitshares)
-        pprint(dex.buy(
-            args.amount,
-            args.asset,
+        amount = Amount(args.buy_amount, args.buy_asset)
+        price = Price(
+            args.price,
+            base=args.sell_asset,
+            quote=args.buy_asset
+        )
+        pprint(price.market.buy(
             price,
+            amount,
             account=args.account
         ))
 
     elif args.command == "sell":
-        dex = Dex(bitshares)
-        pprint(dex.sell(
-            args.amount,
-            args.asset,
+        amount = Amount(args.sell_amount, args.sell_asset)
+        price = Price(
+            args.price,
+            quote=args.sell_asset,
+            base=args.buy_asset,
+        )
+        pprint(price.market.sell(
             price,
+            amount,
             account=args.account
         ))
 
-
-"""
+    elif args.command == "openorders":
+        account = Account(args.account)
+        t = PrettyTable([
+            "Price",
+            "Quote Amount",
+            "Base Amount",
+        ])
+        t.align = "r"
+        for o in account.openorders:
+            t.add_row([
+                o["price"],
+                o["quote_amount"],
+                o["base_amount"],
+            ])
+        print(t)
 
     elif args.command == "history":
+        from bitsharesbase.operations import getOperationNameForId
         header = ["#", "time (block)", "operation", "details"]
         if args.csv:
             import csv
@@ -912,6 +951,7 @@ def main():
         else:
             t = PrettyTable(header)
             t.align = "r"
+            t.align["details"] = "l"
         if isinstance(args.account, str):
             args.account = [args.account]
         if isinstance(args.types, str):
@@ -920,16 +960,15 @@ def main():
         for a in args.account:
             account = Account(a)
             for b in account.rawhistory(
-                start=args.first,
                 limit=args.limit,
                 only_ops=args.types,
                 exclude_ops=args.exclude_types
             ):
                 row = [
-                    b[0],
-                    "%s (%s)" % (b[1]["timestamp"], b[1]["block"]),
-                    b[1]["op"][0],
-                    format_operation_details(b[1]["op"], memos=args.memos),
+                    b["id"].split(".")[2],
+                    "%s" % (b["block_num"]),
+                    "{} ({})".format(getOperationNameForId(b["op"][0]), b["op"][0]),
+                    pprintOperation(b),
                 ]
                 if args.csv:
                     t.writerow(row)
@@ -937,6 +976,7 @@ def main():
                     t.add_row(row)
         if not args.csv:
             print(t)
+    """
     elif args.command == "newaccount":
         import getpass
         while True:
