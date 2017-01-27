@@ -13,6 +13,8 @@ from bitshares.storage import configStorage as config
 from bitshares.bitshares import BitShares
 from bitshares.amount import Amount
 from bitshares.account import Account
+from bitshares.market import Market
+from bitshares.dex import Dex
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 import logging
@@ -802,117 +804,6 @@ def main():
             threshold=args.threshold
         ))
 
-"""
-    elif args.command == "updatememokey":
-        if not args.key:
-            # Loop until both match
-            from bitsharesbase.account import PasswordKey
-            pw = get_terminal(text="Password for Memo Key: ", confirm=True, allowedempty=False)
-            memo_key = PasswordKey(args.account, pw, "memo")
-            args.key = format(memo_key.get_public_key(), "STM")
-            memo_privkey = memo_key.get_private_key()
-            # Add the key to the wallet
-            if not args.nobroadcast:
-                bitshares.wallet.addPrivateKey(memo_privkey)
-        pprint(bitshares.update_memo_key(
-            args.key,
-            account=args.account
-        ))
-
-    elif args.command == "history":
-        header = ["#", "time (block)", "operation", "details"]
-        if args.csv:
-            import csv
-            t = csv.writer(sys.stdout, delimiter=";")
-            t.writerow(header)
-        else:
-            t = PrettyTable(header)
-            t.align = "r"
-        if isinstance(args.account, str):
-            args.account = [args.account]
-        if isinstance(args.types, str):
-            args.types = [args.types]
-
-        for a in args.account:
-            for b in bitshares.rpc.account_history(
-                a,
-                args.first,
-                limit=args.limit,
-                only_ops=args.types,
-                exclude_ops=args.exclude_types
-            ):
-                row = [
-                    b[0],
-                    "%s (%s)" % (b[1]["timestamp"], b[1]["block"]),
-                    b[1]["op"][0],
-                    format_operation_details(b[1]["op"], memos=args.memos),
-                ]
-                if args.csv:
-                    t.writerow(row)
-                else:
-                    t.add_row(row)
-        if not args.csv:
-            print(t)
-
-
-    elif args.command == "newaccount":
-        import getpass
-        while True:
-            pw = getpass.getpass("New Account Passphrase: ")
-            if not pw:
-                print("You cannot chosen an empty password!")
-                continue
-            else:
-                pwck = getpass.getpass(
-                    "Confirm New Account Passphrase: "
-                )
-                if (pw == pwck):
-                    break
-                else:
-                    print("Given Passphrases do not match!")
-        pprint(bitshares.create_account(
-            args.accountname,
-            creator=args.account,
-            password=pw,
-        ))
-
-    elif args.command == "importaccount":
-        from bitsharesbase.account import PasswordKey
-        import getpass
-        password = getpass.getpass("Account Passphrase: ")
-        account = bitshares.rpc.get_account(args.account)
-        imported = False
-
-        if "owner" in args.roles:
-            owner_key = PasswordKey(args.account, password, role="owner")
-            owner_pubkey = format(owner_key.get_public_key(), "STM")
-            if owner_pubkey in [x[0] for x in account["owner"]["key_auths"]]:
-                print("Importing owner key!")
-                owner_privkey = owner_key.get_private_key()
-                bitshares.wallet.addPrivateKey(owner_privkey)
-                imported = True
-
-        if "active" in args.roles:
-            active_key = PasswordKey(args.account, password, role="active")
-            active_pubkey = format(active_key.get_public_key(), "STM")
-            if active_pubkey in [x[0] for x in account["active"]["key_auths"]]:
-                print("Importing active key!")
-                active_privkey = active_key.get_private_key()
-                bitshares.wallet.addPrivateKey(active_privkey)
-                imported = True
-
-        if "memo" in args.roles:
-            memo_key = PasswordKey(args.account, password, role="memo")
-            memo_pubkey = format(memo_key.get_public_key(), "STM")
-            if memo_pubkey == account["memo_key"]:
-                print("Importing memo key!")
-                memo_privkey = memo_key.get_private_key()
-                bitshares.wallet.addPrivateKey(memo_privkey)
-                imported = True
-
-        if not imported:
-            print("No matching key(s) found. Password correct?")
-
     elif args.command == "sign":
         if args.file and args.file != "-":
             if not os.path.isfile(args.file):
@@ -921,8 +812,10 @@ def main():
                 tx = fp.read()
         else:
             tx = sys.stdin.read()
-        tx = eval(tx)
-        pprint(bitshares.sign(tx))
+        tx = TransactionBuilder(eval(tx))
+        tx.appendMissingSignatures()
+        tx.sign()
+        pprint(tx.json())
 
     elif args.command == "broadcast":
         if args.file and args.file != "-":
@@ -932,8 +825,9 @@ def main():
                 tx = fp.read()
         else:
             tx = sys.stdin.read()
-        tx = eval(tx)
-        bitshares.broadcast(tx)
+        tx = TransactionBuilder(eval(tx))
+        tx.broadcast()
+        pprint(tx.json())
 
     elif args.command == "orderbook":
         if args.chart:
@@ -1005,6 +899,101 @@ def main():
             price,
             account=args.account
         ))
+
+
+"""
+
+    elif args.command == "history":
+        header = ["#", "time (block)", "operation", "details"]
+        if args.csv:
+            import csv
+            t = csv.writer(sys.stdout, delimiter=";")
+            t.writerow(header)
+        else:
+            t = PrettyTable(header)
+            t.align = "r"
+        if isinstance(args.account, str):
+            args.account = [args.account]
+        if isinstance(args.types, str):
+            args.types = [args.types]
+
+        for a in args.account:
+            account = Account(a)
+            for b in account.rawhistory(
+                start=args.first,
+                limit=args.limit,
+                only_ops=args.types,
+                exclude_ops=args.exclude_types
+            ):
+                row = [
+                    b[0],
+                    "%s (%s)" % (b[1]["timestamp"], b[1]["block"]),
+                    b[1]["op"][0],
+                    format_operation_details(b[1]["op"], memos=args.memos),
+                ]
+                if args.csv:
+                    t.writerow(row)
+                else:
+                    t.add_row(row)
+        if not args.csv:
+            print(t)
+    elif args.command == "newaccount":
+        import getpass
+        while True:
+            pw = getpass.getpass("New Account Passphrase: ")
+            if not pw:
+                print("You cannot chosen an empty password!")
+                continue
+            else:
+                pwck = getpass.getpass(
+                    "Confirm New Account Passphrase: "
+                )
+                if (pw == pwck):
+                    break
+                else:
+                    print("Given Passphrases do not match!")
+        pprint(bitshares.create_account(
+            args.accountname,
+            creator=args.account,
+            password=pw,
+        ))
+
+    elif args.command == "importaccount":
+        from bitsharesbase.account import PasswordKey
+        import getpass
+        password = getpass.getpass("Account Passphrase: ")
+        account = bitshares.rpc.get_account(args.account)
+        imported = False
+
+        if "owner" in args.roles:
+            owner_key = PasswordKey(args.account, password, role="owner")
+            owner_pubkey = format(owner_key.get_public_key(), "STM")
+            if owner_pubkey in [x[0] for x in account["owner"]["key_auths"]]:
+                print("Importing owner key!")
+                owner_privkey = owner_key.get_private_key()
+                bitshares.wallet.addPrivateKey(owner_privkey)
+                imported = True
+
+        if "active" in args.roles:
+            active_key = PasswordKey(args.account, password, role="active")
+            active_pubkey = format(active_key.get_public_key(), "STM")
+            if active_pubkey in [x[0] for x in account["active"]["key_auths"]]:
+                print("Importing active key!")
+                active_privkey = active_key.get_private_key()
+                bitshares.wallet.addPrivateKey(active_privkey)
+                imported = True
+
+        if "memo" in args.roles:
+            memo_key = PasswordKey(args.account, password, role="memo")
+            memo_pubkey = format(memo_key.get_public_key(), "STM")
+            if memo_pubkey == account["memo_key"]:
+                print("Importing memo key!")
+                memo_privkey = memo_key.get_private_key()
+                bitshares.wallet.addPrivateKey(memo_privkey)
+                imported = True
+
+        if not imported:
+            print("No matching key(s) found. Password correct?")
 
     elif args.command == "approvewitness":
         pprint(bitshares.approve_witness(
