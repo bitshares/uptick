@@ -731,13 +731,14 @@ def main():
                 installedKeys = bitshares.wallet.getPublicKeys()
                 if len(installedKeys) == 1:
                     name = bitshares.wallet.getAccountFromPublicKey(installedKeys[0])
+                    account = Account(name)
                     print("=" * 30)
-                    print("Setting new default user: %s" % name)
+                    print("Setting new default user: %s" % account["name"])
                     print()
                     print("You can change these settings with:")
                     print("    uptick set default_account <account>")
                     print("=" * 30)
-                    config["default_account"] = name
+                    config["default_account"] = account["name"]
 
     elif args.command == "delkey":
         if confirm(
