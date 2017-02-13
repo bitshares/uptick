@@ -812,7 +812,7 @@ def main():
     elif args.command == "balance":
         t = PrettyTable(["Account", "Amount", "Asset"])
         t.align = "r"
-        for a in args.account.split(" "):
+        for a in args.account:
             account = Account(a)
             for b in account.balances:
                 t.add_row([
