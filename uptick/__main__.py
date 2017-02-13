@@ -12,6 +12,7 @@ from bitsharesbase.account import PrivateKey, PublicKey, Address
 from bitshares.storage import configStorage as config
 from bitshares.bitshares import BitShares
 from bitshares.amount import Amount
+from bitshares.asset import Asset
 from bitshares.account import Account
 from bitshares.market import Market
 from bitshares.dex import Dex
@@ -679,15 +680,42 @@ def main():
                     print(t)
                 else:
                     print("Block number %s unknown" % obj)
+            # Asset
+            elif obj.upper() == obj:
+                asset = Asset(obj)
+                t = PrettyTable(["Key", "Value"])
+                t.align = "l"
+                for key in sorted(data):
+                    value = data[key]
+                    if isinstance(value, dict):
+                        value = json.dumps(value, indent=4)
+                    t.add_row([key, value])
+                print(t)
+
+            # Object Id
+            elif len(obj.split(".")) == 3:
+                data = bitshares.rpc.get_object(obj)
+                if data:
+                    t = PrettyTable(["Key", "Value"])
+                    t.align = "l"
+                    for key in sorted(data):
+                        value = data[key]
+                        if isinstance(value, dict):
+                            value = json.dumps(value, indent=4)
+                        t.add_row([key, value])
+                    print(t)
+                else:
+                    print("Object %s unknown" % obj)
+
             # Account name
             elif re.match("^[a-zA-Z0-9\._]{2,64}$", obj):
-                account = bitshares.rpc.get_account(obj)
+                account = Account(obj, full=True)
                 if account:
                     t = PrettyTable(["Key", "Value"])
                     t.align = "l"
                     for key in sorted(account):
                         value = account[key]
-                        if key in ["active", "owner", "options"]:
+                        if isinstance(value, dict) or isinstance(value, list):
                             value = json.dumps(value, indent=4)
                         t.add_row([key, value])
                     print(t)
@@ -877,9 +905,9 @@ def main():
         ta["bids"].align = "r"
         for order in orderbook["bids"]:
             ta["bids"].add_row([
-                order["quote_amount"],
-                order["base_amount"],
-                order["price"]
+                str(order["quote_amount"]),
+                str(order["base_amount"]),
+                str(order["price"])
             ])
 
         ta["asks"] = PrettyTable([
@@ -891,11 +919,10 @@ def main():
         ta["asks"].align["price"] = "l"
         for order in orderbook["asks"]:
             ta["asks"].add_row([
-                order["price"],
-                order["base_amount"],
-                order["quote_amount"]
+                str(order["price"]),
+                str(order["base_amount"]),
+                str(order["quote_amount"])
             ])
-
         t = PrettyTable(["bids", "asks"])
         t.add_row([str(ta["bids"]), str(ta["asks"])])
         print(t)
