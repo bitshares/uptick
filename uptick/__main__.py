@@ -682,7 +682,7 @@ def main():
                     print("Block number %s unknown" % obj)
             # Asset
             elif obj.upper() == obj:
-                asset = Asset(obj)
+                data = Asset(obj)
                 t = PrettyTable(["Key", "Value"])
                 t.align = "l"
                 for key in sorted(data):
