@@ -42,8 +42,7 @@ def print_permissions(account):
         auths = []
         # account auths:
         for authority in account[permission]["account_auths"]:
-            account = Account(authority[0])
-            auths.append("%s (%d)" % (account["name"], authority[1]))
+            auths.append("%s (%d)" % (Account(authority[0])["name"], authority[1]))
         # key auths:
         for authority in account[permission]["key_auths"]:
             auths.append("%s (%d)" % (authority[0], authority[1]))

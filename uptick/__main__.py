@@ -828,8 +828,7 @@ def main():
         print(t)
 
     elif args.command == "permissions":
-        account = bitshares.rpc.get_account(args.account)
-        print_permissions(account)
+        print_permissions(Account(args.account))
 
     elif args.command == "allow":
         if not args.foreign_account:
@@ -1035,7 +1034,7 @@ def main():
         from bitsharesbase.account import PasswordKey
         import getpass
         password = getpass.getpass("Account Passphrase: ")
-        account = bitshares.rpc.get_account(args.account)
+        account = Account(args.account)
         imported = False
 
         if "owner" in args.roles:
