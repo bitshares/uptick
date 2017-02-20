@@ -20,7 +20,6 @@ from bitshares.price import Price, Order
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 import logging
-from .__version__ import __VERSION__
 from .ui import (
     confirm,
     print_permissions,
@@ -28,6 +27,7 @@ from .ui import (
     pprintOperation
 )
 from bitshares.exceptions import AccountDoesNotExistsException
+import pkg_resources  # part of setuptools
 
 
 availableConfigurationKeys = [
@@ -93,8 +93,13 @@ def main():
         default=3,
         help='Verbosity'
     )
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s {version}'.format(version=__VERSION__))
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s {version}'.format(
+            version=pkg_resources.require("uptick")[0].version
+        )
+    )
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
