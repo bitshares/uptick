@@ -2,7 +2,6 @@
 
 import sys
 import os
-import argparse
 import json
 import re
 from pprint import pprint
@@ -25,24 +24,15 @@ from .ui import (
     confirm,
     print_permissions,
     get_terminal,
-    pprintOperation
+    pprintOperation,
+    print_version
 )
 from bitshares.exceptions import AccountDoesNotExistsException
-import pkg_resources
 import click
+from click_datetime import Datetime
+from datetime import datetime
 from functools import update_wrapper
-
 log = logging.getLogger(__name__)
-
-
-def print_version(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-    click.echo('{prog} {version}'.format(
-        prog=pkg_resources.require("uptick")[0].project_name,
-        version=pkg_resources.require("uptick")[0].version
-    ))
-    ctx.exit()
 
 
 def offlineChain(f):
@@ -174,9 +164,11 @@ def addkey(ctx, key):
         while True:
             key = click.prompt(
                 "Private Key (wif) [Enter to quit]",
-                hide_input=True
+                hide_input=True,
+                show_default=False,
+                default="exit"
             )
-            if not key:
+            if not key or key == "exit":
                 break
             try:
                 ctx.bitshares.wallet.addPrivateKey(key)
@@ -337,15 +329,14 @@ def info(ctx, objects):
 @onlineChain
 @click.argument("accounts", nargs=-1)
 def balance(ctx, accounts):
-    t = PrettyTable(["Account", "Amount", "Asset"])
+    t = PrettyTable(["Account", "Amount"])
     t.align = "r"
     for a in accounts:
         account = Account(a, bitshares_instance=ctx.bitshares)
         for b in account.balances:
             t.add_row([
                 str(a),
-                b.amount,
-                b.symbol,
+                str(b),
             ])
     click.echo(str(t))
 
@@ -473,7 +464,10 @@ def orderbook(ctx, market):
         ta["bids"].add_row([
             str(order["quote"]),
             str(order["base"]),
-            str(order["price"])
+            "{:f} {}/{}".format(
+                order["price"],
+                order["base"]["asset"]["symbol"],
+                order["quote"]["asset"]["symbol"]),
         ])
 
     ta["asks"] = PrettyTable([
@@ -485,7 +479,10 @@ def orderbook(ctx, market):
     ta["asks"].align["price"] = "l"
     for order in orderbook["asks"]:
         ta["asks"].add_row([
-            str(order["price"]),
+            "{:f} {}/{}".format(
+                order["price"],
+                order["base"]["asset"]["symbol"],
+                order["quote"]["asset"]["symbol"]),
             str(order["base"]),
             str(order["quote"])
         ])
@@ -533,7 +530,7 @@ def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
         price,
         quote=sell_asset,
         base=buy_asset,
-    bitshares_instance=ctx.bitshares
+        bitshares_instance=ctx.bitshares
     )
     pprint(price.market.sell(
         price,
@@ -559,7 +556,10 @@ def openorders(ctx, account):
     t.align = "r"
     for o in account.openorders:
         t.add_row([
-            str(o["price"]),
+            "{:f} {}/{}".format(
+                o["price"],
+                o["base"]["asset"]["symbol"],
+                o["quote"]["asset"]["symbol"]),
             str(o["quote"]),
             str(o["base"]),
         ])
@@ -569,7 +569,7 @@ def openorders(ctx, account):
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument("account")
+@click.argument("account", nargs=-1)
 @click.option("--csv/--table", default=False)
 @click.option("--type", type=str, multiple=True)
 @click.option("--exclude", type=str, multiple=True)
@@ -605,6 +605,44 @@ def history(ctx, account, limit, type, csv, exclude):
                 t.add_row(row)
     if not csv:
         click.echo(t)
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument('market', nargs=1)
+@click.option('--limit', type=int, default=10)   # fixme add start and stop time
+@click.option('--start', type=Datetime(format='%Y-%m-%d %H:%M:%S'))
+@click.option('--stop', type=Datetime(format='%Y-%m-%d %H:%M:%S'), default=datetime.utcnow())
+def trades(ctx, market, limit, start, stop):
+    market = Market(market, bitshares_instance=ctx.bitshares)
+    t = PrettyTable(["time", "quote", "base", "price"])
+    t.align = 'r'
+    for trade in market.trades(limit, start=start, stop=stop):
+        t.add_row([
+            str(trade["time"]),
+            str(trade["quote"]),
+            str(trade["base"]),
+            "{:f} {}/{}".format(
+                trade["price"],
+                trade["base"]["asset"]["symbol"],
+                trade["quote"]["asset"]["symbol"]),
+        ])
+    click.echo(str(t))
+
+
+@main.command()
+@click.option('--prefix', type=str, default="BTS")
+@click.option('--num', type=int, default=1)
+def randomwif(prefix, num):
+    t = PrettyTable(["wif", "pubkey"])
+    for n in range(0, num):
+        wif = PrivateKey()
+        t.add_row([
+            str(wif),
+            format(wif.pubkey, prefix)
+        ])
+    click.echo(str(t))
 
 if __name__ == '__main__':
     main()

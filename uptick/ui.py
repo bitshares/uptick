@@ -2,6 +2,18 @@ import json
 import sys
 from bitshares.account import Account
 from prettytable import PrettyTable, ALL as allBorders
+import pkg_resources
+import click
+
+
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo('{prog} {version}'.format(
+        prog=pkg_resources.require("uptick")[0].project_name,
+        version=pkg_resources.require("uptick")[0].version
+    ))
+    ctx.exit()
 
 
 def confirm(question, default="yes"):

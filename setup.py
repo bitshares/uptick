@@ -35,7 +35,8 @@ setup(
     install_requires=[
         "bitshares>=0.0.1",
         "prettytable==0.7.2",
-        "click"
+        "click",
+        "click-datetime",
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
