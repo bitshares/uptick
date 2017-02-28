@@ -18,6 +18,7 @@ from bitshares.market import Market
 from bitshares.dex import Dex
 from bitshares.price import Price, Order
 from bitshares.transactionbuilder import TransactionBuilder
+from bitshares.instance import set_shared_bitshares_instance
 from prettytable import PrettyTable
 import logging
 from .ui import (
@@ -41,6 +42,7 @@ def offlineChain(f):
     def new_func(ctx, *args, **kwargs):
         ctx.obj["offline"] = True
         ctx.bitshares = BitShares(**ctx.obj)
+        set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
 
@@ -50,6 +52,7 @@ def onlineChain(f):
     @verbose
     def new_func(ctx, *args, **kwargs):
         ctx.bitshares = BitShares(**ctx.obj)
+        set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
 
@@ -58,8 +61,13 @@ def unlockWallet(f):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
         if not ctx.obj.get("unsigned", False):
-            pwd = click.prompt("Current Wallet Passphrase", hide_input=True)
-            ctx.bitshares.wallet.unlock(pwd)
+            if ctx.bitshares.wallet.created():
+                pwd = click.prompt("Current Wallet Passphrase", hide_input=True)
+                ctx.bitshares.wallet.unlock(pwd)
+            else:
+                click.echo("No wallet installed yet. Creating ...")
+                pwd = click.prompt("Wallet Encryption Passphrase", hide_input=True, confirmation_prompt=True)
+                ctx.bitshares.wallet.create(pwd)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
 
