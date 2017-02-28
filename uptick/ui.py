@@ -1,5 +1,19 @@
+import json
 import sys
+from bitshares.account import Account
 from prettytable import PrettyTable, ALL as allBorders
+import pkg_resources
+import click
+
+
+def print_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo('{prog} {version}'.format(
+        prog=pkg_resources.require("uptick")[0].project_name,
+        version=pkg_resources.require("uptick")[0].version
+    ))
+    ctx.exit()
 
 
 def confirm(question, default="yes"):
@@ -38,9 +52,12 @@ def print_permissions(account):
     t.align = "r"
     for permission in ["owner", "active"]:
         auths = []
-        for type_ in ["account_auths", "key_auths"]:
-            for authority in account[permission][type_]:
-                auths.append("%s (%d)" % (authority[0], authority[1]))
+        # account auths:
+        for authority in account[permission]["account_auths"]:
+            auths.append("%s (%d)" % (Account(authority[0])["name"], authority[1]))
+        # key auths:
+        for authority in account[permission]["key_auths"]:
+            auths.append("%s (%d)" % (authority[0], authority[1]))
         t.add_row([
             permission,
             account[permission]["weight_threshold"],
@@ -67,3 +84,13 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
             else:
                 print("Not matching!")
     return pw
+
+
+def pprintOperation(op):
+    from bitshares.price import Order, FilledOrder
+    if op["op"][0] == 1:
+        return str(Order(op["op"][1]))
+    if op["op"][0] == 4:
+        return str(FilledOrder(op["op"][1]))
+    else:
+        return json.dumps(op["op"][1], indent=4)

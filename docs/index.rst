@@ -38,7 +38,7 @@ General
     :maxdepth: 2
 
     installation
-    contrib
+    contribute
     public-api
 
 Standalone App
