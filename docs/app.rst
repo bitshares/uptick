@@ -46,14 +46,14 @@ Configuration
 All configuration variables are provided with ``uptick set --help``
 You can see your local configuration by calling::
 
-    uptick config
+    uptick configuration
 
 Transfer Assets
 ~~~~~~~~~~~~~~~
 
 BitShares can be transfered via::
 
-    uptick transfer receipient "100.000 BitShares"
+    uptick transfer receipient 100.000 BTS
 
 If ``--author`` is not provided, the *default* account as defined with
 ``uptick set author`` will be taken.
@@ -130,53 +130,6 @@ More details and the default parameters can be found via:::
     uptick allow --help
     uptick disallow --help
 
-Update Memo Key
-~~~~~~~~~~~~~~~
-
-The memo key of your account can be updated with::
-
-    uptick updatememokey --key <KEY>
-
-If no ``key`` is provided, it will ask for a password from which the
-key will be derived
-
-Create a new account
-~~~~~~~~~~~~~~~~~~~~
-
-uptick let's you create new accounts on the BitShares blockchain.
-
-It works like this::
-
-    uptick newaccount <accountname>
-
-and it will ask you to provide a new password. During creation, uptick
-will derive the new keys from the password (and the account name) and
-store them in the wallet (except for the owner key)
-
-.. note::
-
-    ``newaccount`` will **not** store the owner private key in the
-    wallet!
-
-Import Account
-~~~~~~~~~~~~~~
-
-You can import your existing account into uptick by using
-
-    uptick importaccount --account <accountname>
-
-It will ask you to provide the passphrase from which the private key
-will be derived. If you already have a private key, you can use `addkey`
-instead.
-
-Approve/Disapprove Witnesses
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-With uptick, you can also approve and disapprove witnesses who are
-producing blocks on the BitShares blockchain:::
-
-    uptick approvewitness <witnessname>
-    uptick disapprovewitness <witnessname>
-
 Info
 ~~~~
 uptick can read data from the blockchain and present it to the user in
@@ -184,10 +137,10 @@ tabular form. It can automatically identify:
 
 * block numbers (``1000021``)
 * account names (``uptick``)
+* assets (``BTS``)
 * public keys (``BTSxxxxxxxxxx``)
-* post identifiers (``@<accountname>/<permlink>``)
 * general blockchain parameters
 
 The corresponding data can be presented using:::
 
-    uptick info [block_num [account name [pubkey [identifier]]]]
+    uptick info [block_num [account name [pubkey [identifier [asset]]]]]
