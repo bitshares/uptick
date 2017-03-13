@@ -596,7 +596,7 @@ def history(ctx, account, limit, type, csv, exclude):
 
     for a in account:
         account = Account(a, bitshares_instance=ctx.bitshares)
-        for b in account.rawhistory(
+        for b in account.history(
             limit=limit,
             only_ops=type,
             exclude_ops=exclude
@@ -656,6 +656,31 @@ def randomwif(prefix, num):
 @main.command()
 @click.pass_context
 @onlineChain
+@click.argument('witnesses', nargs=-1)
+@click.option("--account", default=config["default_account"], type=str)
+@unlockWallet
+def approvewitness(ctx, witnesses, account):
+    pprint(ctx.bitshares.approvewitness(
+        witnesses,
+        account=account
+    ))
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument('witnesses', nargs=-1)
+@click.option("--account", default=config["default_account"], type=str)
+@unlockWallet
+def disapprovewitness(ctx, witnesses, account):
+    pprint(ctx.bitshares.disapprovewitness(
+        witnesses,
+        account=account
+    ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
 @click.option("--account", default=config["default_account"], type=str)
 @click.option("--to", default="faucet", type=str)
 @click.option("--ops", default=1, type=int)
@@ -686,6 +711,7 @@ def flood(ctx, account, ops, txs, to):
         tx.appendSigner(account, "active")
         tx.broadcast()
         click.echo(tx["signatures"])
+
 
 if __name__ == '__main__':
     main()
