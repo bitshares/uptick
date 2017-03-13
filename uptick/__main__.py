@@ -22,101 +22,72 @@ from bitshares.instance import set_shared_bitshares_instance
 from prettytable import PrettyTable
 import logging
 from .ui import (
-    confirm,
     print_permissions,
     get_terminal,
     pprintOperation,
-    print_version
+    print_version,
+    onlineChain,
+    offlineChain,
+    unlockWallet
 )
 from bitshares.exceptions import AccountDoesNotExistsException
 import click
 from click_datetime import Datetime
 from datetime import datetime
-from functools import update_wrapper
 log = logging.getLogger(__name__)
 
 
-def offlineChain(f):
-    @click.pass_context
-    @verbose
-    def new_func(ctx, *args, **kwargs):
-        ctx.obj["offline"] = True
-        ctx.bitshares = BitShares(**ctx.obj)
-        set_shared_bitshares_instance(ctx.bitshares)
-        return ctx.invoke(f, *args, **kwargs)
-    return update_wrapper(new_func, f)
-
-
-def onlineChain(f):
-    @click.pass_context
-    @verbose
-    def new_func(ctx, *args, **kwargs):
-        ctx.bitshares = BitShares(**ctx.obj)
-        set_shared_bitshares_instance(ctx.bitshares)
-        return ctx.invoke(f, *args, **kwargs)
-    return update_wrapper(new_func, f)
-
-
-def unlockWallet(f):
-    @click.pass_context
-    def new_func(ctx, *args, **kwargs):
-        if not ctx.obj.get("unsigned", False):
-            if ctx.bitshares.wallet.created():
-                pwd = click.prompt("Current Wallet Passphrase", hide_input=True)
-                ctx.bitshares.wallet.unlock(pwd)
-            else:
-                click.echo("No wallet installed yet. Creating ...")
-                pwd = click.prompt("Wallet Encryption Passphrase", hide_input=True, confirmation_prompt=True)
-                ctx.bitshares.wallet.create(pwd)
-        return ctx.invoke(f, *args, **kwargs)
-    return update_wrapper(new_func, f)
-
-
-def verbose(f):
-    @click.pass_context
-    def new_func(ctx, *args, **kwargs):
-        global log
-        verbosity = [
-            "critical", "error", "warn", "info", "debug"
-        ][int(min(ctx.obj.get("verbose", 0), 4))]
-        log.setLevel(getattr(logging, verbosity.upper()))
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch = logging.StreamHandler()
-        ch.setLevel(getattr(logging, verbosity.upper()))
-        ch.setFormatter(formatter)
-        log.addHandler(ch)
-
-        # GrapheneAPI logging
-        if ctx.obj["verbose"] > 4:
-            verbosity = [
-                "critical", "error", "warn", "info", "debug"
-            ][int(min(ctx.obj.get("verbose", 4) - 4, 4))]
-            log = logging.getLogger("grapheneapi")
-            log.setLevel(getattr(logging, verbosity.upper()))
-            log.addHandler(ch)
-
-        if ctx.obj["verbose"] > 8:
-            verbosity = [
-                "critical", "error", "warn", "info", "debug"
-            ][int(min(ctx.obj.get("verbose", 8) - 8, 4))]
-            log = logging.getLogger("graphenebase")
-            log.setLevel(getattr(logging, verbosity.upper()))
-            log.addHandler(ch)
-
-        return ctx.invoke(f, *args, **kwargs)
-    return update_wrapper(new_func, f)
-
-
 @click.group()
-@click.option('--debug/--no-debug', default=False)
-@click.option('--node', type=str, default=config["node"], help='Websocket URL for public BitShares API (default: "wss://this.uptick.rocks/")')
-@click.option('--rpcuser', type=str, default=config["rpcuser"], help='Websocket user if authentication is required')
-@click.option('--rpcpassword', type=str, default=config["rpcpassword"], help='Websocket password if authentication is required')
-@click.option('--nobroadcast/--broadcast', '-d', default=False, help='Do not broadcast anything')
-@click.option('--unsigned/--signed', '-x', default=False, help='Do not try to sign the transaction')
-@click.option('--expires', '-e', default=30, help='Expiration time in seconds (defaults to 30)')
-@click.option('--verbose', '-v', type=int, default=3, help='Verbosity')
-@click.option('--version', is_flag=True, callback=print_version, expose_value=False, is_eager=True, help="Show version")
+@click.option(
+    '--debug/--no-debug',
+    default=False,
+    help="Enable/Disable Debugging (no-broadcasting mode)"
+)
+@click.option(
+    '--node',
+    type=str,
+    default=config["node"],
+    help='Websocket URL for public BitShares API (default: "wss://this.uptick.rocks/")'
+)
+@click.option(
+    '--rpcuser',
+    type=str,
+    default=config["rpcuser"],
+    help='Websocket user if authentication is required'
+)
+@click.option(
+    '--rpcpassword',
+    type=str,
+    default=config["rpcpassword"],
+    help='Websocket password if authentication is required')
+@click.option(
+    '--nobroadcast/--broadcast',
+    '-d',
+    default=False,
+    help='Do not broadcast anything')
+@click.option(
+    '--unsigned/--signed',
+    '-x',
+    default=False,
+    help='Do not try to sign the transaction')
+@click.option(
+    '--expires',
+    '-e',
+    default=30,
+    help='Expiration time in seconds (defaults to 30)')
+@click.option(
+    '--verbose',
+    '-v',
+    type=int,
+    default=3,
+    help='Verbosity (0-15)')
+@click.option(
+    '--version',
+    is_flag=True,
+    callback=print_version,
+    expose_value=False,
+    is_eager=True,
+    help="Show version")
 @click.pass_context
 def main(ctx, **kwargs):
     ctx.obj = {}
@@ -124,11 +95,19 @@ def main(ctx, **kwargs):
         ctx.obj[k] = v
 
 
-@main.command()
+@main.command(
+    help="Set configuration key/value pair"
+)
 @click.pass_context
 @offlineChain
-@click.argument('key', type=str)
-@click.argument('value', type=str)
+@click.argument(
+    'key',
+    type=str
+)
+@click.argument(
+    'value',
+    type=str
+)
 def set(ctx, key, value):
     """ Set configuration parameters
     """
@@ -138,7 +117,9 @@ def set(ctx, key, value):
     config[key] = value
 
 
-@main.command()
+@main.command(
+    help="Show configuration variables"
+)
 def configuration():
     t = PrettyTable(["Key", "Value"])
     t.align = "l"
@@ -150,22 +131,32 @@ def configuration():
     click.echo(t)
 
 
-@main.command()
+@main.command(
+    help="Change the wallet passphrase"
+)
 @click.pass_context
 @offlineChain
-@click.option('--new-password',
-              prompt="New Wallet Passphrase",
-              hide_input=True,
-              confirmation_prompt=True)
+@click.option(
+    '--new-password',
+    prompt="New Wallet Passphrase",
+    hide_input=True,
+    confirmation_prompt=True,
+    help="New Wallet Passphrase"
+)
 @unlockWallet
 def changewalletpassphrase(ctx, new_password):
     ctx.bitshares.wallet.changePassphrase(new_password)
 
 
-@main.command()
+@main.command(
+    help="Add a private key to the wallet"
+)
 @click.pass_context
 @onlineChain
-@click.argument("key", nargs=-1)
+@click.argument(
+    "key",
+    nargs=-1
+)
 @unlockWallet
 def addkey(ctx, key):
     if not key:
@@ -197,10 +188,15 @@ def addkey(ctx, key):
             config["default_account"] = account["name"]
 
 
-@main.command()
+@main.command(
+    help="Delete a private key from the wallet"
+)
 @click.pass_context
 @offlineChain
-@click.argument("pubkeys", nargs=-1)
+@click.argument(
+    "pubkeys",
+    nargs=-1
+)
 def delkey(ctx, pubkeys):
     if not pubkeys:
         pubkeys = click.prompt("Public Keys").split(" ")
@@ -213,16 +209,23 @@ def delkey(ctx, pubkeys):
             ctx.bitshares.wallet.removePrivateKeyFromPublicKey(pub)
 
 
-@main.command()
+@main.command(
+    help="Obtain private key in WIF format"
+)
 @click.pass_context
 @offlineChain
-@click.argument("pubkey", nargs=1)
+@click.argument(
+    "pubkey",
+    nargs=1
+)
 @unlockWallet
 def getkey(ctx, pubkey):
     click.echo(ctx.bitshares.wallet.getPrivateKeyForPublicKey(pubkey))
 
 
-@main.command()
+@main.command(
+    help="List all keys (for all networks)"
+)
 @click.pass_context
 @offlineChain
 def listkeys(ctx):
@@ -233,7 +236,9 @@ def listkeys(ctx):
     click.echo(t)
 
 
-@main.command()
+@main.command(
+    help="List accounts (for the connected network)"
+)
 @click.pass_context
 @onlineChain
 def listaccounts(ctx):
@@ -248,10 +253,16 @@ def listaccounts(ctx):
     click.echo(t)
 
 
-@main.command()
+@main.command(
+    help="Obtain all kinds of information"
+)
 @click.pass_context
 @onlineChain
-@click.argument('objects', type=str, nargs=-1)
+@click.argument(
+    'objects',
+    type=str,
+    nargs=-1
+)
 def info(ctx, objects):
     if not objects:
         t = PrettyTable(["Key", "Value"])
@@ -315,7 +326,7 @@ def info(ctx, objects):
                 click.echo("Public Key not known" % obj)
 
         # Account name
-        elif re.match("^[a-zA-Z0-9\._]{2,64}$", obj):
+        elif re.match("^[a-zA-Z0-9\-\._]{2,64}$", obj):
             account = Account(obj, full=True)
             if account:
                 t = PrettyTable(["Key", "Value"])
@@ -332,10 +343,14 @@ def info(ctx, objects):
             click.echo("Couldn't identify object to read")
 
 
-@main.command()
+@main.command(
+    help="Show Account balances"
+)
 @click.pass_context
 @onlineChain
-@click.argument("accounts", nargs=-1)
+@click.argument(
+    "accounts",
+    nargs=-1)
 def balance(ctx, accounts):
     t = PrettyTable(["Account", "Amount"])
     t.align = "r"
@@ -349,22 +364,45 @@ def balance(ctx, accounts):
     click.echo(str(t))
 
 
-@main.command()
+@main.command(
+    help="Show permissions of an account"
+)
 @click.pass_context
 @onlineChain
-@click.argument("account", nargs=1)
+@click.argument(
+    "account",
+    nargs=1)
 def permissions(ctx, account):
     print_permissions(Account(account))
 
 
-@main.command()
+@main.command(
+    help="Transfer assets"
+)
 @click.pass_context
 @onlineChain
-@click.argument("to", nargs=1, type=str)
-@click.argument("amount", nargs=1, type=float)
-@click.argument("asset", nargs=1, type=str)
-@click.argument("memo", required=False, type=str, default=None)
-@click.option("--account", default=config["default_account"])
+@click.argument(
+    "to",
+    nargs=1,
+    type=str)
+@click.argument(
+    "amount",
+    nargs=1,
+    type=float)
+@click.argument(
+    "asset",
+    nargs=1,
+    type=str)
+@click.argument(
+    "memo",
+    required=False,
+    type=str,
+    default=None)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to send from"
+)
 @unlockWallet
 def transfer(ctx, to, amount, asset, memo, account):
     pprint(ctx.bitshares.transfer(
@@ -376,14 +414,37 @@ def transfer(ctx, to, amount, asset, memo, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="Add a key/account to an account's permission"
+)
 @click.pass_context
 @onlineChain
-@click.argument("foreign_account", required=False, type=str)
-@click.option("--account", default=config["default_account"], type=str)
-@click.option("--permission", default="active", type=str)
-@click.option("--threshold", type=int)
-@click.option("--weight", type=int)
+@click.argument(
+    "foreign_account",
+    required=False,
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@click.option(
+    "--permission",
+    default="active",
+    type=str,
+    help="Permission/Role to be modified"
+)
+@click.option(
+    "--threshold",
+    type=int,
+    help="Threshold for the Role"
+)
+@click.option(
+    "--weight",
+    type=int,
+    help="Weight of the new key/account"
+)
 @unlockWallet
 def allow(ctx, foreign_account, permission, weight, threshold, account):
     if not foreign_account:
@@ -406,13 +467,28 @@ def allow(ctx, foreign_account, permission, weight, threshold, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="Remove a key/account from an account's permission"
+)
 @click.pass_context
 @onlineChain
-@click.argument("foreign_account", type=str)
-@click.option("--account", default=config["default_account"], type=str)
-@click.option("--permission", default="active", type=str)
-@click.option("--threshold", type=int)
+@click.argument(
+    "foreign_account",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to be modified",
+    type=str)
+@click.option(
+    "--permission",
+    default="active",
+    help="Permission/Role to be modified",
+    type=str)
+@click.option(
+    "--threshold",
+    help="Threshold for the Role",
+    type=int)
 @unlockWallet
 def disallow(ctx, foreign_account, permission, threshold, account):
     pprint(ctx.bitshares.disallow(
@@ -423,10 +499,15 @@ def disallow(ctx, foreign_account, permission, threshold, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="Sign a json-formatted transaction"
+)
 @click.pass_context
 @offlineChain
-@click.argument('filename', required=False, type=click.File('r'))
+@click.argument(
+    'filename',
+    required=False,
+    type=click.File('r'))
 @unlockWallet
 def sign(ctx, filename):
     if filename:
@@ -439,10 +520,15 @@ def sign(ctx, filename):
     pprint(tx.json())
 
 
-@main.command()
+@main.command(
+    help="Broadcast a json-formatted transaction"
+)
 @click.pass_context
 @onlineChain
-@click.argument('filename', required=False, type=click.File('r'))
+@click.argument(
+    'filename',
+    required=False,
+    type=click.File('r'))
 @unlockWallet
 def broadcast(ctx, filename):
     if filename:
@@ -454,10 +540,14 @@ def broadcast(ctx, filename):
     pprint(tx.json())
 
 
-@main.command()
+@main.command(
+    help="Show the orderbook of a particular market"
+)
 @click.pass_context
 @onlineChain
-@click.argument('market', nargs=1)
+@click.argument(
+    'market',
+    nargs=1)
 def orderbook(ctx, market):
     market = Market(market, bitshares_instance=ctx.bitshares)
     orderbook = market.orderbook()
@@ -499,14 +589,29 @@ def orderbook(ctx, market):
     click.echo(t)
 
 
-@main.command()
+@main.command(
+    help="Buy a specific asset at a certain rate against a base asset"
+)
 @click.pass_context
 @onlineChain
-@click.argument("buy_amount", type=float)
-@click.argument("buy_asset", type=str)
-@click.argument("price", type=float)
-@click.argument("sell_asset", type=str)
-@click.option("--account", default=config["default_account"], type=str)
+@click.argument(
+    "buy_amount",
+    type=float)
+@click.argument(
+    "buy_asset",
+    type=str)
+@click.argument(
+    "price",
+    type=float)
+@click.argument(
+    "sell_asset",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to use for this action"
+)
 @unlockWallet
 def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
     amount = Amount(buy_amount, buy_asset)
@@ -523,14 +628,28 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="Sell a specific asset at a certain rate against a base asset"
+)
 @click.pass_context
 @onlineChain
-@click.argument("sell_amount", type=float)
-@click.argument("sell_asset", type=str)
-@click.argument("price", type=float)
-@click.argument("buy_asset", type=str)
-@click.option("--account", default=config["default_account"], type=str)
+@click.argument(
+    "sell_amount",
+    type=float)
+@click.argument(
+    "sell_asset",
+    type=str)
+@click.argument(
+    "price",
+    type=float)
+@click.argument(
+    "buy_asset",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to use for this action",
+    type=str)
 @unlockWallet
 def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
     amount = Amount(sell_amount, sell_asset)
@@ -547,10 +666,14 @@ def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="List open orders of an account"
+)
 @click.pass_context
 @onlineChain
-@click.argument("account", type=str)
+@click.argument(
+    "account",
+    type=str)
 def openorders(ctx, account):
     account = Account(
         account or config["default_account"],
@@ -574,14 +697,33 @@ def openorders(ctx, account):
     click.echo(t)
 
 
-@main.command()
+@main.command(
+    "Show history of an account"
+)
 @click.pass_context
 @onlineChain
-@click.argument("account", nargs=-1)
-@click.option("--csv/--table", default=False)
-@click.option("--type", type=str, multiple=True)
-@click.option("--exclude", type=str, multiple=True)
-@click.option("--limit", type=int, default=15)
+@click.argument(
+    "account",
+    nargs=-1)
+@click.option(
+    "--csv/--table",
+    help="Show output as csv or table",
+    default=False)
+@click.option(
+    "--type",
+    type=str,
+    help="Only show operations of this type",
+    multiple=True)
+@click.option(
+    "--exclude",
+    type=str,
+    help="Exclude certain types",
+    multiple=True)
+@click.option(
+    "--limit",
+    type=int,
+    help="Limit number of elements",
+    default=15)
 def history(ctx, account, limit, type, csv, exclude):
     from bitsharesbase.operations import getOperationNameForId
     header = ["#", "time (block)", "operation", "details"]
@@ -615,13 +757,28 @@ def history(ctx, account, limit, type, csv, exclude):
         click.echo(t)
 
 
-@main.command()
+@main.command(
+    help="List trades in a market"
+)
 @click.pass_context
 @onlineChain
-@click.argument('market', nargs=1)
-@click.option('--limit', type=int, default=10)   # fixme add start and stop time
-@click.option('--start', type=Datetime(format='%Y-%m-%d %H:%M:%S'))
-@click.option('--stop', type=Datetime(format='%Y-%m-%d %H:%M:%S'), default=datetime.utcnow())
+@click.argument(
+    'market',
+    nargs=1)
+@click.option(
+    '--limit',
+    type=int,
+    help="Limit number of elements",
+    default=10)   # fixme add start and stop time
+@click.option(
+    '--start',
+    help="Start datetime '%Y-%m-%d %H:%M:%S'",
+    type=Datetime(format='%Y-%m-%d %H:%M:%S'))
+@click.option(
+    '--stop',
+    type=Datetime(format='%Y-%m-%d %H:%M:%S'),
+    help="Stop datetime '%Y-%m-%d %H:%M:%S'",
+    default=datetime.utcnow())
 def trades(ctx, market, limit, start, stop):
     market = Market(market, bitshares_instance=ctx.bitshares)
     t = PrettyTable(["time", "quote", "base", "price"])
@@ -639,9 +796,21 @@ def trades(ctx, market, limit, start, stop):
     click.echo(str(t))
 
 
-@main.command()
-@click.option('--prefix', type=str, default="BTS")
-@click.option('--num', type=int, default=1)
+@main.command(
+    help="Obtain a random private/public key pair"
+)
+@click.option(
+    '--prefix',
+    type=str,
+    default="BTS",
+    help="The refix to use"
+)
+@click.option(
+    '--num',
+    type=int,
+    default=1,
+    help="The number of keys to derive"
+)
 def randomwif(prefix, num):
     t = PrettyTable(["wif", "pubkey"])
     for n in range(0, num):
@@ -653,11 +822,19 @@ def randomwif(prefix, num):
     click.echo(str(t))
 
 
-@main.command()
+@main.command(
+    help="Approve witness(es)"
+)
 @click.pass_context
 @onlineChain
-@click.argument('witnesses', nargs=-1)
-@click.option("--account", default=config["default_account"], type=str)
+@click.argument(
+    'witnesses',
+    nargs=-1)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account that takes this action",
+    type=str)
 @unlockWallet
 def approvewitness(ctx, witnesses, account):
     pprint(ctx.bitshares.approvewitness(
@@ -665,11 +842,19 @@ def approvewitness(ctx, witnesses, account):
         account=account
     ))
 
-@main.command()
+@main.command(
+    help="Disapprove witness(es)"
+)
 @click.pass_context
 @onlineChain
-@click.argument('witnesses', nargs=-1)
-@click.option("--account", default=config["default_account"], type=str)
+@click.argument(
+    'witnesses',
+    nargs=-1)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
 @unlockWallet
 def disapprovewitness(ctx, witnesses, account):
     pprint(ctx.bitshares.disapprovewitness(
@@ -681,10 +866,22 @@ def disapprovewitness(ctx, witnesses, account):
 @main.command()
 @click.pass_context
 @onlineChain
-@click.option("--account", default=config["default_account"], type=str)
-@click.option("--to", default="faucet", type=str)
-@click.option("--ops", default=1, type=int)
-@click.option("--txs", default=-1, type=int)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str)
+@click.option(
+    "--to",
+    default="faucet",
+    type=str)
+@click.option(
+    "--ops",
+    default=1,
+    type=int)
+@click.option(
+    "--txs",
+    default=-1,
+    type=int)
 @unlockWallet
 def flood(ctx, account, ops, txs, to):
     from bitsharesbase.operations import Transfer
