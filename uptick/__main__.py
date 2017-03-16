@@ -713,9 +713,8 @@ def openorders(ctx, account):
 def cancel(ctx, orders):
     click.echo(ctx.bitshares.cancel(orders))
 
-
 @main.command(
-    "Show history of an account"
+    help="Show history of an account"
 )
 @click.pass_context
 @onlineChain
