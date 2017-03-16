@@ -683,6 +683,7 @@ def openorders(ctx, account):
         "Price",
         "Quote",
         "Base",
+        "ID"
     ])
     t.align = "r"
     for o in account.openorders:
@@ -691,10 +692,26 @@ def openorders(ctx, account):
                 o["price"],
                 o["base"]["asset"]["symbol"],
                 o["quote"]["asset"]["symbol"]),
-            str(o["quote"]),
-            str(o["base"]),
+                str(o["quote"]),
+                str(o["base"]),
+                o["id"]
         ])
     click.echo(t)
+
+
+@main.command(
+    help="Cancel one or multiple orders"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    "orders",
+    type=str,
+    nargs=-1
+)
+@unlockWallet
+def cancel(ctx, orders):
+    click.echo(ctx.bitshares.cancel(orders))
 
 
 @main.command(

@@ -1,10 +1,14 @@
 import json
 import sys
+from bitshares import BitShares
 from bitshares.account import Account
+from bitshares.instance import set_shared_bitshares_instance
 from prettytable import PrettyTable, ALL as allBorders
 from functools import update_wrapper
 import pkg_resources
 import click
+import logging
+log = logging.getLogger(__name__)
 
 
 def verbose(f):
