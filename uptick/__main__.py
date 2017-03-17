@@ -880,6 +880,48 @@ def disapprovewitness(ctx, witnesses, account):
     ))
 
 
+@main.command(
+    help="Approve committee member(s)"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'witnesses',
+    nargs=-1)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account that takes this action",
+    type=str)
+@unlockWallet
+def approvecommittee(ctx, witnesses, account):
+    pprint(ctx.bitshares.approvecommittee(
+        witnesses,
+        account=account
+    ))
+
+
+@main.command(
+    help="Disapprove committee member(s)"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'witnesses',
+    nargs=-1)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def disapprovecommittee(ctx, witnesses, account):
+    pprint(ctx.bitshares.disapprovecommittee(
+        witnesses,
+        account=account
+    ))
+
+
 @main.command()
 @click.pass_context
 @onlineChain
