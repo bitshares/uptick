@@ -692,10 +692,9 @@ def openorders(ctx, account):
                 o["price"],
                 o["base"]["asset"]["symbol"],
                 o["quote"]["asset"]["symbol"]),
-                str(o["quote"]),
-                str(o["base"]),
-                o["id"]
-        ])
+            str(o["quote"]),
+            str(o["base"]),
+            o["id"]])
     click.echo(t)
 
 
@@ -712,6 +711,7 @@ def openorders(ctx, account):
 @unlockWallet
 def cancel(ctx, orders):
     click.echo(ctx.bitshares.cancel(orders))
+
 
 @main.command(
     help="Show history of an account"
@@ -857,6 +857,7 @@ def approvewitness(ctx, witnesses, account):
         witnesses,
         account=account
     ))
+
 
 @main.command(
     help="Disapprove witness(es)"
