@@ -295,7 +295,7 @@ def info(ctx, objects):
                 t.align = "l"
                 for key in sorted(data):
                     value = data[key]
-                    if isinstance(value, dict):
+                    if isinstance(value, dict) or isinstance(value, list):
                         value = json.dumps(value, indent=4)
                     t.add_row([key, value])
                 click.echo(t)
@@ -880,51 +880,88 @@ def disapprovewitness(ctx, witnesses, account):
     ))
 
 
-@main.command()
+@main.command(
+    help="Approve committee member(s)"
+)
 @click.pass_context
 @onlineChain
+@click.argument(
+    'witnesses',
+    nargs=-1)
 @click.option(
     "--account",
     default=config["default_account"],
+    help="Account that takes this action",
     type=str)
-@click.option(
-    "--to",
-    default="faucet",
-    type=str)
-@click.option(
-    "--ops",
-    default=1,
-    type=int)
-@click.option(
-    "--txs",
-    default=-1,
-    type=int)
 @unlockWallet
-def flood(ctx, account, ops, txs, to):
-    from bitsharesbase.operations import Transfer
-    from bitshares.transactionbuilder import TransactionBuilder
-    assert ctx.bitshares.rpc.chain_params["prefix"] == "TEST", "Flooding only on the testnet. Please switch the API to node testnet.bitshares.eu"
-    account = Account(account, bitshares_instance=ctx.bitshares)
-    to_account = Account(to, bitshares_instance=ctx.bitshares)
-    tx = TransactionBuilder(bitshares_instance=ctx.bitshares)
+def approvecommittee(ctx, witnesses, account):
+    pprint(ctx.bitshares.approvecommittee(
+        witnesses,
+        account=account
+    ))
 
-    txcnt = 0
-    while txcnt < txs or txs < 0:
-        txcnt += 1
-        for j in range(0, ops):
-            tx.appendOps(Transfer(**{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "from": account["id"],
-                "to": to_account["id"],
-                "amount": {
-                    "amount": 1,
-                    "asset_id": "1.3.0"
-                },
-                "memo": None
-            }))
-        tx.appendSigner(account, "active")
-        tx.broadcast()
-        click.echo(tx["signatures"])
+
+@main.command(
+    help="Disapprove committee member(s)"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'witnesses',
+    nargs=-1)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def disapprovecommittee(ctx, witnesses, account):
+    pprint(ctx.bitshares.disapprovecommittee(
+        witnesses,
+        account=account
+    ))
+
+
+@main.command(
+    help="Disapprove a proposal"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'proposal',
+    nargs=1)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def disapproveproposal(ctx, proposal, account):
+    pprint(ctx.bitshares.disapproveproposal(
+        proposal,
+        account=account
+    ))
+
+
+@main.command(
+    help="Approve a proposal"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'proposal',
+    nargs=1)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def approveproposal(ctx, proposal, account):
+    pprint(ctx.bitshares.approveproposal(
+        proposal,
+        account=account
+    ))
 
 
 if __name__ == '__main__':
