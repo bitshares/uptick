@@ -295,7 +295,7 @@ def info(ctx, objects):
                 t.align = "l"
                 for key in sorted(data):
                     value = data[key]
-                    if isinstance(value, dict):
+                    if isinstance(value, dict) or isinstance(value, list):
                         value = json.dumps(value, indent=4)
                     t.add_row([key, value])
                 click.echo(t)
