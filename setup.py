@@ -37,6 +37,8 @@ setup(
         "prettytable==0.7.2",
         "click",
         "click-datetime",
+        "colorama",
+        "tqdm"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

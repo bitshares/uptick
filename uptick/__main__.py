@@ -4,8 +4,10 @@ import sys
 import os
 import json
 import re
-from pprint import pprint
+import math
 import time
+from pprint import pprint
+from tqdm import tqdm
 from bitsharesbase import transactions, operations
 from bitsharesbase.account import PrivateKey, PublicKey, Address
 from bitshares.storage import configStorage as config
@@ -17,6 +19,7 @@ from bitshares.account import Account
 from bitshares.market import Market
 from bitshares.dex import Dex
 from bitshares.price import Price, Order
+from bitshares.witness import Witness, Witnesses
 from bitshares.transactionbuilder import TransactionBuilder
 from bitshares.instance import set_shared_bitshares_instance
 from prettytable import PrettyTable
@@ -33,7 +36,7 @@ from .ui import (
 from bitshares.exceptions import AccountDoesNotExistsException
 import click
 from click_datetime import Datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 log = logging.getLogger(__name__)
 
 
@@ -962,6 +965,91 @@ def approveproposal(ctx, proposal, account):
         proposal,
         account=account
     ))
+
+
+@main.command(
+    help="Price Feed Overview"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    'assets',
+    nargs=-1,
+)
+@click.option(
+    "--pricethreshold",
+    help="Percentage threshold for price",
+    default=5.0,
+    type=float)
+@click.option(
+    "--maxage",
+    help="Max Age in minutes",
+    default=60.0 * 24,
+    type=float)
+def feeds(ctx, assets, pricethreshold, maxage):
+    import builtins
+    witnesses = Witnesses(bitshares_instance=ctx.bitshares)
+
+    def test_price(p, ref):
+        if (math.fabs((p / ref) - 1.0) > pricethreshold / 100.0):
+            return click.style(str(p), fg="red")
+        elif (math.fabs((p / ref) - 1.0) > pricethreshold / 2.0 / 100.0):
+            return click.style(str(p), fg="yellow")
+        else:
+            return click.style(str(p), fg="green")
+
+    def test_date(d):
+        now = datetime.utcnow()
+        if now < d + timedelta(minutes=maxage):
+            return click.style(str(d), fg="green")
+        if now < d + timedelta(minutes=maxage / 2.0):
+            return click.style(str(d), fg="yellow")
+        else:
+            return click.style(str(d), fg="red")
+
+    output = ""
+    for asset in tqdm(assets):
+        t = PrettyTable([
+            "Asset",
+            "Witness",
+            "Date",
+            "Settlement Price",
+            "Core Exchange Price",
+            "MCR",
+            "SSPR"
+        ])
+        t.align = 'l'
+        asset = Asset(asset, full=True, bitshares_instance=ctx.bitshares)
+        current_feed = asset.feed
+        feeds = asset.feeds
+        producingwitnesses = builtins.set()
+        for feed in tqdm(feeds):
+            # if feed["witness"]["id"] not in witnesses.schedule:
+            #     continue
+            producingwitnesses.add(feed["witness"]["id"])
+            t.add_row([
+                asset["symbol"],
+                feed["witness"].account["name"],
+                test_date(feed["date"]),
+                test_price(feed["settlement_price"], current_feed["settlement_price"]),
+                test_price(feed["core_exchange_rate"], current_feed["core_exchange_rate"]),
+                feed["maintenance_collateral_ratio"] / 10,
+                feed["maximum_short_squeeze_ratio"] / 10,
+            ])
+        for missing in (builtins.set(witnesses.schedule).difference(producingwitnesses)):
+            witness = Witness(missing)
+            t.add_row([
+                click.style(asset["symbol"], bg="red"),
+                click.style(witness.account["name"], bg="red"),
+                click.style(str(datetime(1970, 1, 1))),
+                click.style("missing", bg="red"),
+                click.style("missing", bg="red"),
+                click.style("missing", bg="red"),
+                click.style("missing", bg="red"),
+            ])
+        output += t.get_string(sortby="Date", reversesort=True)
+        output += "\n"
+    click.echo(output)
 
 
 if __name__ == '__main__':
