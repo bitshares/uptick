@@ -8,6 +8,8 @@ import math
 import time
 import click
 import logging
+import yaml
+import hashlib
 from pprint import pprint
 from bitshares.storage import configStorage as config
 from bitshares.transactionbuilder import TransactionBuilder
@@ -136,6 +138,50 @@ def randomwif(prefix, num):
             format(wif.pubkey, prefix)
         ])
     click.echo(str(t))
+
+
+@main.group()
+@onlineChain
+@click.pass_context
+@click.argument(
+    'configfile',
+    required=True,
+    type=click.File('r'))
+def api(ctx, configfile):
+    """ Open an local API for trading bots
+    """
+    ctx.obj["apiconf"] = yaml.load(configfile.read())
+
+
+@api.command()
+@click.pass_context
+def start(ctx):
+    """ Start the API according to the config file
+    """
+    module = ctx.obj["apiconf"].get("api", "poloniex")
+    # unlockWallet
+    if module == "poloniex":
+        from . import poloniex
+        poloniex.run(port=5000)
+    else:
+        click.echo("Unkown 'api'!")
+
+
+@api.command()
+@click.option(
+    '--password',
+    prompt="Plain Text Password",
+    hide_input=True,
+    confirmation_prompt=False,
+    help="Plain Text Password"
+)
+def apipassword(password):
+    """ Generate a SHA256 hash of the password for the YAML
+        configuration
+    """
+    click.echo(
+        hashlib.sha256(bytes(password, "utf-8")).hexdigest()
+    )
 
 
 if __name__ == '__main__':

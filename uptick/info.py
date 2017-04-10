@@ -1,3 +1,5 @@
+import re
+import json
 import click
 from pprint import pprint
 from prettytable import PrettyTable

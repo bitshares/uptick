@@ -1,5 +1,6 @@
 import click
 from bitshares.storage import configStorage as config
+from bitshares.account import Account
 from pprint import pprint
 from prettytable import PrettyTable
 from .ui import (
@@ -8,6 +9,7 @@ from .ui import (
     unlockWallet
 )
 from .main import main
+
 
 @main.command()
 @click.pass_context
@@ -135,4 +137,3 @@ def listaccounts(ctx):
             account["pubkey"]
         ])
     click.echo(t)
-

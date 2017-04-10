@@ -4,6 +4,7 @@ from .ui import (
     print_version,
 )
 
+
 @click.group()
 @click.option(
     '--debug/--no-debug',

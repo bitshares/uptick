@@ -29,7 +29,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'uptick = uptick.__main__:main',
+            'uptick = uptick.cli:main'
         ],
     },
     install_requires=[
@@ -38,7 +38,8 @@ setup(
         "click",
         "click-datetime",
         "colorama",
-        "tqdm"
+        "tqdm",
+        "pyyaml"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

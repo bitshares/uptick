@@ -5,7 +5,7 @@ from pprint import pprint
 from tqdm import tqdm
 from bitshares.storage import configStorage as config
 from bitshares.price import Price
-from bitshares.witness import Witness
+from bitshares.witness import Witness, Witnesses
 from bitshares.asset import Asset
 from datetime import datetime, timedelta
 from .ui import (

@@ -13,7 +13,7 @@ from .main import main
 @onlineChain
 @click.argument(
     'proposal',
-    nargs=1)
+    nargs=-1)
 @click.option(
     "--account",
     help="Account that takes this action",
@@ -34,7 +34,7 @@ def disapproveproposal(ctx, proposal, account):
 @onlineChain
 @click.argument(
     'proposal',
-    nargs=1)
+    nargs=-1)
 @click.option(
     "--account",
     help="Account that takes this action",
@@ -48,4 +48,3 @@ def approveproposal(ctx, proposal, account):
         proposal,
         account=account
     ))
-
