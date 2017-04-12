@@ -58,6 +58,22 @@ def trades(ctx, market, limit, start, stop):
 @click.pass_context
 @onlineChain
 @click.argument(
+    'market',
+    nargs=1)
+def ticker(ctx, market):
+    market = Market(market, bitshares_instance=ctx.bitshares)
+    ticker = market.ticker()
+    t = PrettyTable(["key", "value"])
+    t.align = 'r'
+    for key in ticker:
+        t.add_row([key, str(ticker[key])])
+    click.echo(str(t))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
     "orders",
     type=str,
     nargs=-1
