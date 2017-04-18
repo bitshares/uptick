@@ -78,11 +78,17 @@ def ticker(ctx, market):
     type=str,
     nargs=-1
 )
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to use for this action"
+)
 @unlockWallet
-def cancel(ctx, orders):
+def cancel(ctx, orders, account):
     """ Cancel one or multiple orders
     """
-    pprint(ctx.bitshares.cancel(orders))
+    pprint(ctx.bitshares.cancel(orders, account=account))
 
 
 @main.command()

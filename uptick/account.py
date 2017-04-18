@@ -229,3 +229,48 @@ def permissions(ctx, account):
     """ Show permissions of an account
     """
     print_permissions(Account(account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "accountname",
+    nargs=1,
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to pay the registration fee"
+)
+@click.option(
+    '--password',
+    prompt="Account Password",
+    hide_input=True,
+    confirmation_prompt=True,
+    help="Account Password"
+)
+@unlockWallet
+def newaccount(ctx, accountname, account, password):
+    """ Create a new account
+    """
+    pprint(ctx.bitshares.create_account(
+        accountname,
+        registrar=account,
+        password=password,
+    ))
+
+
+@main.command(
+    help="Upgrade Account"
+)
+@click.pass_context
+@onlineChain
+@click.argument(
+    "account",
+    nargs=1,
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def upgrade(ctx, account):
+    pprint(ctx.bitshares.upgrade_account(account))

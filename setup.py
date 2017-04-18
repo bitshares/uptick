@@ -17,7 +17,7 @@ setup(
     author_email='Fabian@chainsquad.com',
     maintainer='Fabian Schuh',
     maintainer_email='Fabian@chainsquad.com',
-    url='http://www.github.com/xeroc/uptick',
+    url='http://uptick.rocks',
     keywords=['bitshares', 'library', 'api', 'rpc', 'cli'],
     packages=["uptick"],
     classifiers=[
