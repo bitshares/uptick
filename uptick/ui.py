@@ -3,6 +3,7 @@ import json
 import sys
 from bitshares import BitShares
 from bitshares.account import Account
+from bitshares.amount import Amount
 from bitshares.instance import set_shared_bitshares_instance
 from prettytable import PrettyTable, ALL as allBorders
 from functools import update_wrapper
@@ -137,9 +138,20 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
 
 def pprintOperation(op):
     from bitshares.price import Order, FilledOrder
-    if op["op"][0] == 1:
-        return str(Order(op["op"][1]))
-    if op["op"][0] == 4:
-        return str(FilledOrder(op["op"][1]))
+    id = op["op"][0]
+    op = op["op"][1]
+    if id == 1:
+        return str(Order(op))
+    elif id == 4:
+        return str(FilledOrder(op))
+    elif id == 2:
+        return "Canceled order %s" % op["order"]
+    elif id == 0:
+        from_account = Account(op["from"])
+        to_account = Account(op["to"])
+        amount = Amount(op["amount"])
+        return "Transfer from {from_account[name]} to {to_account[name]}: {amount}".format(
+            **locals()
+        )
     else:
-        return json.dumps(op["op"][1], indent=4)
+        return json.dumps(op, indent=4)
