@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
 
-from uptick import __main__
+from uptick import cli
 
-__main__.main()
+cli.main()
