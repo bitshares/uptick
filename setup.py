@@ -3,7 +3,7 @@
 from setuptools import setup
 import sys
 
-__VERSION__ = '0.1.2a0'
+__VERSION__ = '0.1.3'
 
 assert sys.version_info[0] == 3, "Uptick requires Python > 3"
 
@@ -33,8 +33,8 @@ setup(
         ],
     },
     install_requires=[
-        "bitshares>=0.1.4",
-        "prettytable==0.7.2",
+        "bitshares>=0.1.5",
+        "prettytable",
         "click",
         "click-datetime",
         "colorama",
