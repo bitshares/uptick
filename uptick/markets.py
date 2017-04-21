@@ -8,7 +8,7 @@ from bitshares.market import Market
 from bitshares.amount import Amount
 from bitshares.account import Account
 from bitshares.price import Price, Order
-from .ui import (
+from .decorators import (
     onlineChain,
     unlockWallet
 )
@@ -105,14 +105,22 @@ def orderbook(ctx, market):
     ta = {}
     ta["bids"] = PrettyTable([
         "quote",
+        "sum quote",
         "base",
+        "sum base",
         "price"
     ])
     ta["bids"].align = "r"
+    cumsumquote = Amount(0, market["quote"])
+    cumsumbase = Amount(0, market["base"])
     for order in orderbook["bids"]:
+        cumsumbase += order["base"]
+        cumsumquote += order["quote"]
         ta["bids"].add_row([
             str(order["quote"]),
+            str(cumsumquote),
             str(order["base"]),
+            str(cumsumbase),
             "{:f} {}/{}".format(
                 order["price"],
                 order["base"]["asset"]["symbol"],
@@ -122,18 +130,26 @@ def orderbook(ctx, market):
     ta["asks"] = PrettyTable([
         "price",
         "base",
+        "sum base",
         "quote",
+        "sum quote",
     ])
     ta["asks"].align = "r"
     ta["asks"].align["price"] = "l"
+    cumsumquote = Amount(0, market["quote"])
+    cumsumbase = Amount(0, market["base"])
     for order in orderbook["asks"]:
+        cumsumbase += order["base"]
+        cumsumquote += order["quote"]
         ta["asks"].add_row([
             "{:f} {}/{}".format(
                 order["price"],
                 order["base"]["asset"]["symbol"],
                 order["quote"]["asset"]["symbol"]),
             str(order["base"]),
-            str(order["quote"])
+            str(cumsumbase),
+            str(order["quote"]),
+            str(cumsumquote),
         ])
     t = PrettyTable(["bids", "asks"])
     t.add_row([str(ta["bids"]), str(ta["asks"])])
