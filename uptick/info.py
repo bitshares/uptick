@@ -7,7 +7,7 @@ from bitshares.block import Block
 from bitshares.account import Account
 from bitshares.asset import Asset
 from bitshares.storage import configStorage as config
-from .ui import (
+from .decorators import (
     onlineChain,
     unlockWallet
 )

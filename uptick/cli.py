@@ -19,6 +19,8 @@ from .ui import (
     get_terminal,
     pprintOperation,
     print_version,
+)
+from .decorators import (
     onlineChain,
     offlineChain,
     unlockWallet

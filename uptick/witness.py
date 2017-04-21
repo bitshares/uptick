@@ -1,7 +1,7 @@
 import click
 from bitshares.storage import configStorage as config
 from pprint import pprint
-from .ui import (
+from .decorators import (
     onlineChain,
     unlockWallet
 )

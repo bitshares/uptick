@@ -3,7 +3,7 @@ from bitshares.storage import configStorage as config
 from bitshares.account import Account
 from pprint import pprint
 from prettytable import PrettyTable
-from .ui import (
+from .decorators import (
     onlineChain,
     offlineChain,
     unlockWallet

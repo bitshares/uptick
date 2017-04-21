@@ -5,9 +5,11 @@ from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.account import Account
 from bitshares.storage import configStorage as config
-from .ui import (
+from .decorators import (
     onlineChain,
     unlockWallet,
+)
+from .ui import (
     print_permissions,
     pprintOperation,
 )

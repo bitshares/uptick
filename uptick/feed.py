@@ -8,7 +8,7 @@ from bitshares.price import Price
 from bitshares.witness import Witness, Witnesses
 from bitshares.asset import Asset
 from datetime import datetime, timedelta
-from .ui import (
+from .decorators import (
     onlineChain,
     unlockWallet
 )
