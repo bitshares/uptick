@@ -1,3 +1,4 @@
+import yaml
 import os
 import json
 import sys
@@ -83,6 +84,14 @@ def unlockWallet(f):
                 click.echo("No wallet installed yet. Creating ...")
                 pwd = click.prompt("Wallet Encryption Passphrase", hide_input=True, confirmation_prompt=True)
                 ctx.bitshares.wallet.create(pwd)
+        return ctx.invoke(f, *args, **kwargs)
+    return update_wrapper(new_func, f)
+
+
+def configfile(f):
+    @click.pass_context
+    def new_func(ctx, *args, **kwargs):
+        ctx.config = yaml.load(open(ctx.obj["configfile"]))
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
 

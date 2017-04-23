@@ -19,7 +19,7 @@ setup(
     maintainer_email='Fabian@chainsquad.com',
     url='http://uptick.rocks',
     keywords=['bitshares', 'library', 'api', 'rpc', 'cli'],
-    packages=["uptick"],
+    packages=["uptick", "uptick.apis"],
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
