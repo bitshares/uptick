@@ -1,7 +1,6 @@
 import click
 from bitshares.storage import configStorage as config
 from bitshares.account import Account
-from pprint import pprint
 from prettytable import PrettyTable
 from .decorators import (
     onlineChain,
@@ -138,3 +137,57 @@ def listaccounts(ctx):
             account["pubkey"]
         ])
     click.echo(t)
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "account",
+    nargs=1,
+)
+@click.option(
+    "--role",
+    type=click.Choice(["owner", "active", "memo"]),
+    default="active"
+)
+@unlockWallet
+def importaccount(ctx, account, role):
+    from bitsharesbase.account import PasswordKey
+
+    password = click.prompt(
+        "Account Passphrase",
+        hide_input=True,
+    )
+    account = Account(account, bitshares_instance=ctx.bitshares)
+    imported = False
+
+    if role == "owner":
+        owner_key = PasswordKey(account["name"], password, role="owner")
+        owner_pubkey = format(owner_key.get_public_key(), "BTS")
+        if owner_pubkey in [x[0] for x in account["owner"]["key_auths"]]:
+            click.echo("Importing owner key!")
+            owner_privkey = owner_key.get_private_key()
+            ctx.bitshares.wallet.addPrivateKey(owner_privkey)
+            imported = True
+
+    if role == "active":
+        active_key = PasswordKey(account["name"], password, role="active")
+        active_pubkey = format(active_key.get_public_key(), "BTS")
+        if active_pubkey in [x[0] for x in account["active"]["key_auths"]]:
+            click.echo("Importing active key!")
+            active_privkey = active_key.get_private_key()
+            ctx.bitshares.wallet.addPrivateKey(active_privkey)
+            imported = True
+
+    if role == "memo":
+        memo_key = PasswordKey(account["name"], password, role=role)
+        memo_pubkey = format(memo_key.get_public_key(), "BTS")
+        if memo_pubkey == account["memo_key"]:
+            click.echo("Importing memo key!")
+            memo_privkey = memo_key.get_private_key()
+            ctx.bitshares.wallet.addPrivateKey(memo_privkey)
+            imported = True
+
+    if not imported:
+        click.echo("No matching key(s) found. Password correct?")
