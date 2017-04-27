@@ -41,7 +41,7 @@ def create(ctx):
     """
     import shutil
     this_dir, this_filename = os.path.split(__file__)
-    default_config_file = os.path.join(this_dir, "api-example-config.yaml")
+    default_config_file = os.path.join(this_dir, "apis/example-config.yaml")
     config_file = ctx.obj["configfile"]
     shutil.copyfile(
         default_config_file,
@@ -60,7 +60,7 @@ def start(ctx):
     # unlockWallet
     if module == "poloniex":
         from .apis import poloniex
-        poloniex.run(port=5000)
+        poloniex.run(ctx, port=5000)
     else:
         click.echo("Unkown 'api'!")
 

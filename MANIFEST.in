@@ -1,2 +1,2 @@
 include *.md
-include uptick/api-example-config.yaml
+include uptick/apis/example-config.yaml
