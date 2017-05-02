@@ -1,6 +1,9 @@
+import json
 import click
 from pprint import pprint
 from bitshares.storage import configStorage as config
+from bitshares.proposal import Proposal, Proposals
+from prettytable import PrettyTable
 from .decorators import (
     onlineChain,
     unlockWallet
@@ -48,3 +51,45 @@ def approveproposal(ctx, proposal, account):
         proposal,
         account=account
     ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "account",
+    default=config["default_account"],
+    type=str,
+    required=False
+)
+def proposals(ctx, account):
+    """ List proposals
+    """
+    proposals = Proposals(account)
+    t = PrettyTable([
+        "id",
+        "expiration",
+        "required approvals",
+        "available approvals",
+        "review period time",
+        "proposal",
+    ])
+    t.align = 'l'
+    for proposal in proposals:
+        t.add_row([
+            proposal["id"],
+            proposal["expiration_time"],
+            (
+                proposal["required_active_approvals"] +
+                proposal["required_owner_approvals"]
+            ),
+            (
+                proposal["available_active_approvals"] +
+                proposal["available_key_approvals"] +
+                proposal["available_owner_approvals"]
+            ),
+            proposal["review_period_time"],
+            json.dumps(proposal["proposed_transaction"], indent=4),
+        ])
+
+    click.echo(str(t))
