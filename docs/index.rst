@@ -1,10 +1,11 @@
-.. image:: _static/ico-uptick-typo.svg
-   :width: 600 px
-   :alt: alternate text
-   :align: center
+..
+ .. image:: _static/ico-uptick-typo.svg
+    :width: 600 px
+    :alt: alternate text
+    :align: center
 
 uptick - The Swiss army knife for the BitShares network
-===================================================
+=======================================================
 
 uptick is a tool to interact with the BitShares network using Python 3 and
 python-bitshares.
@@ -35,7 +36,7 @@ General
 ========
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     installation
     contribute
@@ -48,3 +49,4 @@ Standalone App
     :maxdepth: 2
 
     app
+    common-calls

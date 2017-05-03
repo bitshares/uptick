@@ -1,146 +1,65 @@
-*****************
-uptick Executable
-*****************
+************************
+Full uptick Command List
+************************
 
 Swiss army knife for interacting with the BitShares blockchain.
 
-Available Commands
-##################
+::
 
-Adding keys
-~~~~~~~~~~~
+    $ uptick --help
+    Usage: uptick [OPTIONS] COMMAND [ARGS]...
 
-uptick comes with its own encrypted wallet to which keys need to be
-added:::
+    Options:
+      --debug / --no-debug            Enable/Disable Debugging (no-broadcasting
+                                      mode)
+      --node TEXT                     Websocket URL for public BitShares API
+                                      (default: "wss://this.uptick.rocks/")
+      --rpcuser TEXT                  Websocket user if authentication is required
+      --rpcpassword TEXT              Websocket password if authentication is
+                                      required
+      -d, --nobroadcast / --broadcast
+                                      Do not broadcast anything
+      -x, --unsigned / --signed       Do not try to sign the transaction
+      -e, --expires INTEGER           Expiration time in seconds (defaults to 30)
+      -v, --verbose INTEGER           Verbosity (0-15)
+      --version                       Show version
+      --help                          Show this message and exit.
 
-    uptick addkey
-
-On first run, you will be asked to provide a new passphrase that you
-will need to provide every time you want to post on the BitShares network.
-If you chose an *empty* password, your keys will be stored in plain text
-which allows automated posting but exposes your private key to your
-local user.
-
-List available Keys and accounts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can list the installed keys using:::
-
-    uptick listkeys
-
-This command will give the list of public keys to which the private keys
-are available.::
-
-    uptick listaccounts
-
-This command tries to resolve the public keys into account names
-registered on the network (experimental).
-
-Configuration
-~~~~~~~~~~~~~
-
-``uptick`` comes with its owne configuration:::
-
-    uptick set default_account <account-name>
-
-All configuration variables are provided with ``uptick set --help``
-You can see your local configuration by calling::
-
-    uptick configuration
-
-Transfer Assets
-~~~~~~~~~~~~~~~
-
-BitShares can be transfered via::
-
-    uptick transfer receipient 100.000 BTS
-
-If ``--author`` is not provided, the *default* account as defined with
-``uptick set author`` will be taken.
-
-Buy/Sell Assets
-~~~~~~~~~~~~~~~
-
-You can of course sell your assets in the internal decentralized exchange that
-is integrated into the BitShares blockchain by using:::
-
-    uptick buy <amount> <asset-to-buy> <price> <asset-to-sell> 
-    uptick sell <amount> <asset-to-sell> <price> <asset-to-buy>
-
-Balances
-~~~~~~~~
-
-Get an account's balance with::
-
-    uptick balance <account>
-
-If ``<account>`` is not provided, the *default* account will be taken.
-
-History
-~~~~~~~
-
-You can get an accounts history by using::
-
-    uptick history <account>
-
-Furthermore you can filter by ``types`` and limit the result by
-transaction numer. More information can be found by calling ``uptick
-history -h``.
-
-
-Permissions
-~~~~~~~~~~~
-
-Any account permission can be inspected using::
-
-    uptick permissions [<account>]
-
-The take the following form::
-
-    +------------+-----------+-----------------------------------------------------------+
-    | Permission | Threshold |                                               Key/Account |
-    +------------+-----------+-----------------------------------------------------------+
-    |      owner |         2 |                                                fabian (1) |
-    |            |           | BTS7mgtsF5XPU9tokFpEz2zN9sQ89oAcRfcaSkZLsiqfWMtRDNKkc (1) |
-    +------------+-----------+-----------------------------------------------------------+
-    |     active |         1 | BTS6quoHiVnmiDEXyz4fAsrNd28G6q7qBCitWbZGo4pTfQn8SwkzD (1) |
-    +------------+-----------+-----------------------------------------------------------+
-    |    posting |         1 |                                             streemian (1) |
-    |            |           | BTS6xpuUdyoRkRJ1GQmrHeNiVC3KGadjrBayo25HaTyBxBCQNwG3j (1) |
-    |            |           | BTS8aJtoKdTsrRrWg3PB9XsbsCgZbVeDhQS3VUM1jkcXfVSjbv4T8 (1) |
-    +------------+-----------+-----------------------------------------------------------+
-
-The permissions are either **owner** (full control over the account),
-**active** (full control, except for changing the owner), and
-**posting** (for posting and voting). The keys can either be a public
-key or another account name while the number behind shows the weight of
-the entry. If the weight is smaller than the threshold, a single
-signature will not suffice to validate a transaction
-
-Allow/Disallow
-~~~~~~~~~~~~~~
-
-Permissions can be changed using:::
-
-    uptick allow --account <account> --weight 1 --permission posting --threshold 1 <foreign_account>
-    uptick disallow --permission <permissions> <foreign_account>
-
-More details and the default parameters can be found via:::
-
-    uptick allow --help
-    uptick disallow --help
-
-Info
-~~~~
-uptick can read data from the blockchain and present it to the user in
-tabular form. It can automatically identify:
-
-* block numbers (``1000021``)
-* account names (``uptick``)
-* assets (``BTS``)
-* public keys (``BTSxxxxxxxxxx``)
-* general blockchain parameters
-
-The corresponding data can be presented using:::
-
-    uptick info [block_num [account name [pubkey [identifier [asset]]]]]
+    Commands:
+      addkey                  Add a private key to the wallet
+      allow                   Add a key/account to an account's permission
+      api                     Open an local API for trading bots
+      approvecommittee        Approve committee member(s)
+      approveproposal         Approve a proposal
+      approvewitness          Approve witness(es)
+      balance                 Show Account balances
+      broadcast               Broadcast a json-formatted transaction
+      buy                     Buy a specific asset at a certain rate...
+      cancel                  Cancel one or multiple orders
+      changewalletpassphrase  Change the wallet passphrase
+      configuration           Show configuration variables
+      delkey                  Delete a private key from the wallet
+      disallow                Remove a key/account from an account's...
+      disapprovecommittee     Disapprove committee member(s)
+      disapproveproposal      Disapprove a proposal
+      disapprovewitness       Disapprove witness(es)
+      feeds                   Price Feed Overview
+      getkey                  Obtain private key in WIF format
+      history                 Show history of an account
+      info                    Obtain all kinds of information
+      listaccounts            List accounts (for the connected network)
+      listkeys                List all keys (for all networks)
+      newaccount              Create a new account
+      newfeed                 Publish a price feed! Examples:  uptick...
+      openorders              List open orders of an account
+      orderbook               Show the orderbook of a particular market
+      permissions             Show permissions of an account
+      proposals               List proposals
+      randomwif               Obtain a random private/public key pair
+      sell                    Sell a specific asset at a certain rate...
+      set                     Set configuration parameters
+      sign                    Sign a json-formatted transaction
+      ticker                  Show ticker of a market
+      trades                  List trades in a market
+      transfer                Transfer assets
+      upgrade                 Upgrade Account

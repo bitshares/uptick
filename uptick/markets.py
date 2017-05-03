@@ -61,6 +61,8 @@ def trades(ctx, market, limit, start, stop):
     'market',
     nargs=1)
 def ticker(ctx, market):
+    """ Show ticker of a market
+    """
     market = Market(market, bitshares_instance=ctx.bitshares)
     ticker = market.ticker()
     t = PrettyTable(["key", "value"])
