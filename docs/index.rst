@@ -50,3 +50,4 @@ Standalone App
 
     app
     common-calls
+    custom-scripts
