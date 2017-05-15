@@ -10,7 +10,9 @@ from bitshares.account import Account
 from bitshares.price import Price, Order
 from .decorators import (
     onlineChain,
-    unlockWallet
+    unlockWallet,
+    online,
+    unlock
 )
 from .main import main
 
@@ -265,3 +267,62 @@ def openorders(ctx, account):
             str(o["base"]),
             o["id"]])
     click.echo(t)
+
+
+@main.command()
+@click.option("--account", default=None)
+@click.argument("market")
+@click.pass_context
+@online
+@unlock
+def cancelall(ctx, market, account):
+    """ Cancel all orders of an account in a market
+    """
+    market = Market(market)
+    ctx.bitshares.bundle = True
+    market.cancel([
+        x["id"] for x in market.accountopenorders(account)
+    ], account=account)
+    pprint(ctx.bitshares.txbuffer.broadcast())
+
+
+@main.command()
+@click.option("--account", default=None)
+@click.argument("market")
+@click.argument("side", type=click.Choice(['buy', 'sell']))
+@click.argument("min", type=float)
+@click.argument("max", type=float)
+@click.argument("num", type=float)
+@click.argument("total", type=float)
+@click.pass_context
+@online
+@unlock
+def spread(ctx, market, side, min, max, num, total, account):
+    """ Place multiple orders
+
+        \b
+        :param str market: Market pair
+        :param str side: ``buy`` or ``sell`` quote
+        :param float min: minimum price to place order at
+        :param float max: maximum price to place order at
+        :param int num: Number of orders to place
+        :param float total: Total amount of base to use for all orders
+
+    """
+    from numpy import linspace
+    market = Market(market)
+    ctx.bitshares.bundle = True
+
+    if min < max:
+        space = linspace(min, max, num)
+    else:
+        space = linspace(max, min, num)
+
+    func = getattr(market, side)
+    for p in space:
+        func(p, total / float(num), account=account)
+    pprint(ctx.bitshares.txbuffer.broadcast())
+
+
+if __name__ == "__main__":
+    main()
