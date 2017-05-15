@@ -88,7 +88,7 @@ def proposals(ctx, account):
                 proposal["available_key_approvals"] +
                 proposal["available_owner_approvals"]
             ),
-            proposal["review_period_time"],
+            proposal.get("review_period_time", None),
             json.dumps(proposal["proposed_transaction"], indent=4),
         ])
 
