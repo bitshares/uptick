@@ -301,12 +301,12 @@ def spread(ctx, market, side, min, max, num, total, account):
     """ Place multiple orders
 
         \b
-        :param str market: Market pair
+        :param str market: Market pair quote:base (e.g. USD:BTS)
         :param str side: ``buy`` or ``sell`` quote
         :param float min: minimum price to place order at
         :param float max: maximum price to place order at
         :param int num: Number of orders to place
-        :param float total: Total amount of base to use for all orders
+        :param float total: Total amount of quote to use for all orders
 
     """
     from numpy import linspace
