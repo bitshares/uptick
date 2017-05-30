@@ -95,8 +95,8 @@ def feeds(ctx, assets, pricethreshold, maxage):
     for asset in tqdm(assets):
         t = PrettyTable([
             "Asset",
-            "Witness",
-            "act",
+            "Producer",
+            "Active Witness",
             "Date",
             "Settlement Price",
             "Core Exchange Price",
@@ -104,18 +104,18 @@ def feeds(ctx, assets, pricethreshold, maxage):
             "SSPR"
         ])
         t.align = 'c'
-        t.align["Witness"] = 'l'
+        t.align["Producer"] = 'l'
         asset = Asset(asset, full=True, bitshares_instance=ctx.bitshares)
         current_feed = asset.feed
         feeds = asset.feeds
         producingwitnesses = builtins.set()
         for feed in tqdm(feeds):
-            producingwitnesses.add(feed["witness"]["id"])
+            producingwitnesses.add(feed["producer"]["id"])
             t.add_row([
                 asset["symbol"],
-                feed["witness"].account["name"],
+                feed["producer"]["name"],
                 click.style(
-                    "X" if feed["witness"]["id"] in witnesses.schedule else "",
+                    "X" if feed["producer"]["id"] in witnesses.schedule else "",
                     bold=True),
                 test_date(feed["date"]),
                 test_price(feed["settlement_price"], current_feed["settlement_price"]),
@@ -129,7 +129,7 @@ def feeds(ctx, assets, pricethreshold, maxage):
                 click.style(asset["symbol"], bg="red"),
                 click.style(witness.account["name"], bg="red"),
                 click.style(
-                    feed["witness"]["id"] in witnesses.schedule,
+                    "x" if feed["producer"]["id"] in witnesses.schedule,
                     bold=True),
                 click.style(str(datetime(1970, 1, 1))),
                 click.style("missing", bg="red"),
