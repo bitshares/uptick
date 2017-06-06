@@ -29,6 +29,7 @@ from . import (
     proposal,
     wallet,
     witness,
+    workers,
     api,
 )
 log = logging.getLogger(__name__)
