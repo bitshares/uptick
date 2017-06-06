@@ -129,7 +129,7 @@ def feeds(ctx, assets, pricethreshold, maxage):
                 click.style(asset["symbol"], bg="red"),
                 click.style(witness.account["name"], bg="red"),
                 click.style(
-                    "x" if feed["producer"]["id"] in witnesses.schedule,
+                    "x" if feed["producer"]["id"] in witnesses.schedule else "",
                     bold=True),
                 click.style(str(datetime(1970, 1, 1))),
                 click.style("missing", bg="red"),
