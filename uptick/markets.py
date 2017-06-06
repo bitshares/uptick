@@ -349,3 +349,66 @@ def calls(ctx, account):
             "%.2f" % (calls[symbol]["ratio"])
         ])
     click.echo(str(t))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "amount",
+    type=float,
+)
+@click.argument(
+    "symbol",
+    type=str,
+)
+@click.option(
+    "--ratio",
+    default=None,
+    help="Collateral Ratio",
+    type=float)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to use for this action",
+    type=str)
+@unlockWallet
+def borrow(ctx, amount, symbol, ratio, account):
+    """ Borrow a bitasset/market-pegged asset
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    pprint(dex.borrow(
+        Amount(amount, symbol),
+        ratio
+    ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "symbol",
+    type=str,
+)
+@click.option(
+    "--ratio",
+    default=2,
+    help="Collateral Ratio",
+    type=float)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to use for this action",
+    type=str)
+@unlockWallet
+def updateratio(ctx, symbol, ratio, account):
+    """ Update the collateral ratio of a call positions
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    pprint(dex.adjust_collateral_ratio(
+        symbol,
+        ratio,
+        account=account
+    ))
