@@ -64,7 +64,7 @@ def info(ctx, objects):
                 click.echo("Object %s unknown" % obj)
 
         # Asset
-        elif obj.upper() == obj:
+        elif obj.upper() == obj and re.match("^[A-Z\.]*$", obj):
             data = Asset(obj)
             t = PrettyTable(["Key", "Value"])
             t.align = "l"
@@ -100,5 +100,20 @@ def info(ctx, objects):
                 click.echo(t)
             else:
                 click.echo("Account %s unknown" % obj)
+
+        elif ":" in obj:
+            vote = ctx.bitshares.rpc.lookup_vote_ids([obj])[0]
+            if vote:
+                t = PrettyTable(["Key", "Value"])
+                t.align = "l"
+                for key in sorted(vote):
+                    value = vote[key]
+                    if isinstance(value, dict) or isinstance(value, list):
+                        value = json.dumps(value, indent=4)
+                    t.add_row([key, value])
+                click.echo(t)
+            else:
+                click.echo("voteid %s unknown" % obj)
+
         else:
             click.echo("Couldn't identify object to read")
