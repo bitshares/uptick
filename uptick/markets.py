@@ -324,5 +324,28 @@ def spread(ctx, market, side, min, max, num, total, account):
     pprint(ctx.bitshares.txbuffer.broadcast())
 
 
-if __name__ == "__main__":
-    main()
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "account",
+    required=False,
+    default=config["default_account"],
+    type=str,
+)
+def calls(ctx, account):
+    """ List call/short positions of an account
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    t = PrettyTable(["debt", "collateral", "call price", "ratio"])
+    t.align = 'r'
+    calls = dex.list_debt_positions(account=account)
+    for symbol in calls:
+        t.add_row([
+            str(calls[symbol]["debt"]),
+            str(calls[symbol]["collateral"]),
+            str(calls[symbol]["call_price"]),
+            "%.2f" % (calls[symbol]["ratio"])
+        ])
+    click.echo(str(t))
