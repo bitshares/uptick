@@ -175,6 +175,7 @@ def orderbook(ctx, market):
 @click.argument(
     "sell_asset",
     type=str)
+@click.option("--order-expiration", default=7 * 24 * 60 * 60)
 @click.option(
     "--account",
     default=config["default_account"],
@@ -182,7 +183,7 @@ def orderbook(ctx, market):
     help="Account to use for this action"
 )
 @unlockWallet
-def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
+def buy(ctx, buy_amount, buy_asset, price, sell_asset, order_expiration, account):
     """ Buy a specific asset at a certain rate against a base asset
     """
     amount = Amount(buy_amount, buy_asset)
@@ -196,6 +197,7 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
         price,
         amount,
         account=account,
+        expiration=order_expiration
     ))
 
 
@@ -214,13 +216,14 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
 @click.argument(
     "buy_asset",
     type=str)
+@click.option("--order-expiration", default=7 * 24 * 60 * 60)
 @click.option(
     "--account",
     default=config["default_account"],
     help="Account to use for this action",
     type=str)
 @unlockWallet
-def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
+def sell(ctx, sell_amount, sell_asset, price, buy_asset, order_expiration, account):
     """ Sell a specific asset at a certain rate against a base asset
     """
     amount = Amount(sell_amount, sell_asset)
@@ -233,7 +236,8 @@ def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
     pprint(price.market.sell(
         price,
         amount,
-        account=account
+        account=account,
+        expiration=order_expiration
     ))
 
 
@@ -294,10 +298,11 @@ def cancelall(ctx, market, account):
 @click.argument("max", type=float)
 @click.argument("num", type=float)
 @click.argument("total", type=float)
+@click.option("--order-expiration", default=7 * 24 * 60 * 60)
 @click.pass_context
 @online
 @unlock
-def spread(ctx, market, side, min, max, num, total, account):
+def spread(ctx, market, side, min, max, num, total, order_expiration, account):
     """ Place multiple orders
 
         \b
@@ -307,6 +312,7 @@ def spread(ctx, market, side, min, max, num, total, account):
         :param float max: maximum price to place order at
         :param int num: Number of orders to place
         :param float total: Total amount of quote to use for all orders
+        :param int order_expiration: Number of seconds until the order expires from the books
 
     """
     from numpy import linspace
@@ -320,7 +326,7 @@ def spread(ctx, market, side, min, max, num, total, account):
 
     func = getattr(market, side)
     for p in space:
-        func(p, total / float(num), account=account)
+        func(p, total / float(num), account=account, expiration=order_expiration)
     pprint(ctx.bitshares.txbuffer.broadcast())
 
 
