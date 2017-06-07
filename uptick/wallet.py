@@ -153,6 +153,8 @@ def listaccounts(ctx):
 )
 @unlockWallet
 def importaccount(ctx, account, role):
+    """ Import an account using an account password
+    """
     from bitsharesbase.account import PasswordKey
 
     password = click.prompt(

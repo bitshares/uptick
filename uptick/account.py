@@ -293,6 +293,11 @@ def upgrade(ctx, account):
     type=str)
 @unlockWallet
 def cloneaccount(ctx, account_name, account):
+    """ Clone an account
+
+        This copies the owner and active permissions as well as the
+        options (e.g. votes, memo key)
+    """
     from bitsharesbase import transactions, operations
     account = Account(account)
     op = {
