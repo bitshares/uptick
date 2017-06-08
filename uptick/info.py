@@ -3,6 +3,8 @@ import json
 import click
 from pprint import pprint
 from prettytable import PrettyTable
+from bitshares.amount import Amount
+from bitshares.blockchain import Blockchain
 from bitshares.block import Block
 from bitshares.account import Account
 from bitshares.asset import Asset
@@ -117,3 +119,52 @@ def info(ctx, objects):
 
         else:
             click.echo("Couldn't identify object to read")
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    'currency',
+    type=str,
+    required=False,
+    default="USD"
+)
+def fees(ctx, currency):
+    """ List fees
+    """
+    from bitsharesbase.operationids import getOperationNameForId
+    from bitshares.market import Market
+
+    market = Market("%s:%s" % (currency, "BTS"))
+    ticker = market.ticker()
+    if "quoteSettlement_price" in ticker:
+        price = ticker.get("quoteSettlement_price")
+    else:
+        price = ticker.get("latest", 0)
+
+    chain = Blockchain(bitshares_instance=ctx.bitshares)
+    feesObj = chain.chainParameters().get("current_fees")
+    scale = feesObj["scale"]
+    fees = feesObj["parameters"]
+
+    t = PrettyTable(["Operation", "Type", "Fee", currency])
+    t.align = "l"
+    t.align["Fee"] = "r"
+    t.align[currency] = "r"
+
+    for fee in fees:
+        for f in fee[1]:
+            t.add_row([
+                getOperationNameForId(fee[0]),
+                f,
+                str(Amount({
+                    "amount": fee[1].get(f, 0),
+                    "asset_id": "1.3.0"
+                })),
+                str(price * Amount({
+                    "amount": fee[1].get(f, 0),
+                    "asset_id": "1.3.0"
+                }))
+            ])
+    click.echo(t)
