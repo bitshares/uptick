@@ -314,3 +314,26 @@ def cloneaccount(ctx, account_name, account):
     }
     op = operations.Account_create(**op)
     pprint(ctx.bitshares.finalizeOp(op, account, "active"))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.option(
+    "--key",
+    prompt="Memo Key",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@unlockWallet
+def changememokey(ctx, key, account):
+    """ Change the memo key of an account
+    """
+    pprint(ctx.bitshares.update_memo_key(
+        key,
+        account=account,
+    ))
