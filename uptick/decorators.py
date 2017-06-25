@@ -31,7 +31,7 @@ def verbose(f):
         log.addHandler(ch)
 
         # GrapheneAPI logging
-        if ctx.obj["verbose"] > 4:
+        if ctx.obj.get("verbose", 0) > 4:
             verbosity = [
                 "critical", "error", "warn", "info", "debug"
             ][int(min(ctx.obj.get("verbose", 4) - 4, 4))]
@@ -39,7 +39,7 @@ def verbose(f):
             log.setLevel(getattr(logging, verbosity.upper()))
             log.addHandler(ch)
 
-        if ctx.obj["verbose"] > 8:
+        if ctx.obj.get("verbose", 0) > 8:
             verbosity = [
                 "critical", "error", "warn", "info", "debug"
             ][int(min(ctx.obj.get("verbose", 8) - 8, 4))]
