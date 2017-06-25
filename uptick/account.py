@@ -113,7 +113,7 @@ def disallow(ctx, foreign_account, permission, threshold, account):
     default=False)
 @click.option(
     "--type",
-    type=str,
+    type=int,
     help="Only show operations of this type",
     multiple=True)
 @click.option(
