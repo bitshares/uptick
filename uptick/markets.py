@@ -175,7 +175,7 @@ def orderbook(ctx, market):
 @click.argument(
     "sell_asset",
     type=str)
-@click.option("--order-expiration", default=7 * 24 * 60 * 60)
+@click.option("--order-expiration", default=None)
 @click.option(
     "--account",
     default=config["default_account"],
@@ -216,7 +216,7 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, order_expiration, account
 @click.argument(
     "buy_asset",
     type=str)
-@click.option("--order-expiration", default=7 * 24 * 60 * 60)
+@click.option("--order-expiration", default=None)
 @click.option(
     "--account",
     default=config["default_account"],
@@ -298,7 +298,7 @@ def cancelall(ctx, market, account):
 @click.argument("max", type=float)
 @click.argument("num", type=float)
 @click.argument("total", type=float)
-@click.option("--order-expiration", default=7 * 24 * 60 * 60)
+@click.option("--order-expiration", default=None)
 @click.pass_context
 @online
 @unlock
