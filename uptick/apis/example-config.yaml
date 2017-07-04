@@ -1,0 +1,7 @@
+api: poloniex
+login:
+ - user: mail@xeroc.org
+   pass: 3df5fc179dd079c9e44274f0dbdced46a20ab3f898f2580be6de26e3a31b3880
+pairs:
+ - USD/BTS
+ - GOLD/BTS

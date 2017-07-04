@@ -16,10 +16,11 @@ log = logging.getLogger(__name__)
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
-    click.echo('{prog} {version}'.format(
-        prog=pkg_resources.require("uptick")[0].project_name,
-        version=pkg_resources.require("uptick")[0].version
-    ))
+    for app in ["uptick", "bitshares", "graphenelib"]:
+        click.echo('{prog} {version}'.format(
+            prog=pkg_resources.require(app)[0].project_name,
+            version=pkg_resources.require(app)[0].version
+        ))
     ctx.exit()
 
 
@@ -39,7 +40,7 @@ def print_permissions(account):
             account[permission]["weight_threshold"],
             "\n".join(auths),
         ])
-    print(t)
+    click.echo(t)
 
 
 def get_terminal(text="Password", confirm=False, allowedempty=False):
@@ -47,7 +48,7 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
     while True:
         pw = getpass.getpass(text)
         if not pw and not allowedempty:
-            print("Cannot be empty!")
+            click.echo("Cannot be empty!")
             continue
         else:
             if not confirm:
@@ -58,7 +59,7 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
             if (pw == pwck):
                 break
             else:
-                print("Not matching!")
+                click.echo("Not matching!")
     return pw
 
 

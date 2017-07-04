@@ -1,3 +1,4 @@
+import yaml
 import os
 import json
 import sys
@@ -14,6 +15,8 @@ log = logging.getLogger(__name__)
 
 
 def verbose(f):
+    """ Add verbose flags and add logging handlers
+    """
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
         global log
@@ -28,7 +31,7 @@ def verbose(f):
         log.addHandler(ch)
 
         # GrapheneAPI logging
-        if ctx.obj["verbose"] > 4:
+        if ctx.obj.get("verbose", 0) > 4:
             verbosity = [
                 "critical", "error", "warn", "info", "debug"
             ][int(min(ctx.obj.get("verbose", 4) - 4, 4))]
@@ -36,7 +39,7 @@ def verbose(f):
             log.setLevel(getattr(logging, verbosity.upper()))
             log.addHandler(ch)
 
-        if ctx.obj["verbose"] > 8:
+        if ctx.obj.get("verbose", 0) > 8:
             verbosity = [
                 "critical", "error", "warn", "info", "debug"
             ][int(min(ctx.obj.get("verbose", 8) - 8, 4))]
@@ -48,7 +51,10 @@ def verbose(f):
     return update_wrapper(new_func, f)
 
 
-def offlineChain(f):
+def offline(f):
+    """ This decorator allows you to access ``ctx.bitshares`` which is
+        an instance of BitShares with ``offline=True``.
+    """
     @click.pass_context
     @verbose
     def new_func(ctx, *args, **kwargs):
@@ -59,7 +65,10 @@ def offlineChain(f):
     return update_wrapper(new_func, f)
 
 
-def onlineChain(f):
+def chain(f):
+    """ This decorator allows you to access ``ctx.bitshares`` which is
+        an instance of BitShares.
+    """
     @click.pass_context
     @verbose
     def new_func(ctx, *args, **kwargs):
@@ -69,7 +78,10 @@ def onlineChain(f):
     return update_wrapper(new_func, f)
 
 
-def unlockWallet(f):
+def unlock(f):
+    """ This decorator will unlock the wallet by either asking for a
+        passphrase or taking the environmental variable ``UNLOCK``
+    """
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
         if not ctx.obj.get("unsigned", False):
@@ -87,8 +99,19 @@ def unlockWallet(f):
     return update_wrapper(new_func, f)
 
 
+def configfile(f):
+    """ This decorator will parse a configuration file in YAML format
+        and store the dictionary in ``ctx.config``
+    """
+    @click.pass_context
+    def new_func(ctx, *args, **kwargs):
+        ctx.config = yaml.load(open(ctx.obj["configfile"]))
+        return ctx.invoke(f, *args, **kwargs)
+    return update_wrapper(new_func, f)
+
+
 # Aliases
-chain = onlineChain
+onlineChain = chain
 online = onlineChain
-offline = offlineChain
-unlock = unlockWallet
+offlineChain = offline
+unlockWallet = unlock

@@ -10,7 +10,9 @@ from bitshares.account import Account
 from bitshares.price import Price, Order
 from .decorators import (
     onlineChain,
-    unlockWallet
+    unlockWallet,
+    online,
+    unlock
 )
 from .main import main
 
@@ -61,6 +63,8 @@ def trades(ctx, market, limit, start, stop):
     'market',
     nargs=1)
 def ticker(ctx, market):
+    """ Show ticker of a market
+    """
     market = Market(market, bitshares_instance=ctx.bitshares)
     ticker = market.ticker()
     t = PrettyTable(["key", "value"])
@@ -171,6 +175,7 @@ def orderbook(ctx, market):
 @click.argument(
     "sell_asset",
     type=str)
+@click.option("--order-expiration", default=None)
 @click.option(
     "--account",
     default=config["default_account"],
@@ -178,7 +183,7 @@ def orderbook(ctx, market):
     help="Account to use for this action"
 )
 @unlockWallet
-def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
+def buy(ctx, buy_amount, buy_asset, price, sell_asset, order_expiration, account):
     """ Buy a specific asset at a certain rate against a base asset
     """
     amount = Amount(buy_amount, buy_asset)
@@ -192,6 +197,7 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
         price,
         amount,
         account=account,
+        expiration=order_expiration
     ))
 
 
@@ -210,13 +216,14 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, account):
 @click.argument(
     "buy_asset",
     type=str)
+@click.option("--order-expiration", default=None)
 @click.option(
     "--account",
     default=config["default_account"],
     help="Account to use for this action",
     type=str)
 @unlockWallet
-def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
+def sell(ctx, sell_amount, sell_asset, price, buy_asset, order_expiration, account):
     """ Sell a specific asset at a certain rate against a base asset
     """
     amount = Amount(sell_amount, sell_asset)
@@ -229,7 +236,8 @@ def sell(ctx, sell_amount, sell_asset, price, buy_asset, account):
     pprint(price.market.sell(
         price,
         amount,
-        account=account
+        account=account,
+        expiration=order_expiration
     ))
 
 
@@ -263,3 +271,150 @@ def openorders(ctx, account):
             str(o["base"]),
             o["id"]])
     click.echo(t)
+
+
+@main.command()
+@click.option("--account", default=None)
+@click.argument("market")
+@click.pass_context
+@online
+@unlock
+def cancelall(ctx, market, account):
+    """ Cancel all orders of an account in a market
+    """
+    market = Market(market)
+    ctx.bitshares.bundle = True
+    market.cancel([
+        x["id"] for x in market.accountopenorders(account)
+    ], account=account)
+    pprint(ctx.bitshares.txbuffer.broadcast())
+
+
+@main.command()
+@click.option("--account", default=None)
+@click.argument("market")
+@click.argument("side", type=click.Choice(['buy', 'sell']))
+@click.argument("min", type=float)
+@click.argument("max", type=float)
+@click.argument("num", type=float)
+@click.argument("total", type=float)
+@click.option("--order-expiration", default=None)
+@click.pass_context
+@online
+@unlock
+def spread(ctx, market, side, min, max, num, total, order_expiration, account):
+    """ Place multiple orders
+
+        \b
+        :param str market: Market pair quote:base (e.g. USD:BTS)
+        :param str side: ``buy`` or ``sell`` quote
+        :param float min: minimum price to place order at
+        :param float max: maximum price to place order at
+        :param int num: Number of orders to place
+        :param float total: Total amount of quote to use for all orders
+        :param int order_expiration: Number of seconds until the order expires from the books
+
+    """
+    from numpy import linspace
+    market = Market(market)
+    ctx.bitshares.bundle = True
+
+    if min < max:
+        space = linspace(min, max, num)
+    else:
+        space = linspace(max, min, num)
+
+    func = getattr(market, side)
+    for p in space:
+        func(p, total / float(num), account=account, expiration=order_expiration)
+    pprint(ctx.bitshares.txbuffer.broadcast())
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "account",
+    required=False,
+    default=config["default_account"],
+    type=str,
+)
+def calls(ctx, account):
+    """ List call/short positions of an account
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    t = PrettyTable(["debt", "collateral", "call price", "ratio"])
+    t.align = 'r'
+    calls = dex.list_debt_positions(account=account)
+    for symbol in calls:
+        t.add_row([
+            str(calls[symbol]["debt"]),
+            str(calls[symbol]["collateral"]),
+            str(calls[symbol]["call_price"]),
+            "%.2f" % (calls[symbol]["ratio"])
+        ])
+    click.echo(str(t))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "amount",
+    type=float,
+)
+@click.argument(
+    "symbol",
+    type=str,
+)
+@click.option(
+    "--ratio",
+    default=None,
+    help="Collateral Ratio",
+    type=float)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to use for this action",
+    type=str)
+@unlockWallet
+def borrow(ctx, amount, symbol, ratio, account):
+    """ Borrow a bitasset/market-pegged asset
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    pprint(dex.borrow(
+        Amount(amount, symbol),
+        ratio
+    ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "symbol",
+    type=str,
+)
+@click.option(
+    "--ratio",
+    default=2,
+    help="Collateral Ratio",
+    type=float)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to use for this action",
+    type=str)
+@unlockWallet
+def updateratio(ctx, symbol, ratio, account):
+    """ Update the collateral ratio of a call positions
+    """
+    from bitshares.dex import Dex
+    dex = Dex(bitshares_instance=ctx.bitshares)
+    pprint(dex.adjust_collateral_ratio(
+        symbol,
+        ratio,
+        account=account
+    ))

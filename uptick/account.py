@@ -263,9 +263,7 @@ def newaccount(ctx, accountname, account, password):
     ))
 
 
-@main.command(
-    help="Upgrade Account"
-)
+@main.command()
 @click.pass_context
 @onlineChain
 @click.argument(
@@ -275,4 +273,67 @@ def newaccount(ctx, accountname, account, password):
     type=str)
 @unlockWallet
 def upgrade(ctx, account):
+    """ Upgrade account
+    """
     pprint(ctx.bitshares.upgrade_account(account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.option(
+    "--account",
+    nargs=1,
+    default=config["default_account"],
+    help="Account to clone",
+    type=str)
+@click.argument(
+    "account_name",
+    nargs=1,
+    type=str)
+@unlockWallet
+def cloneaccount(ctx, account_name, account):
+    """ Clone an account
+
+        This copies the owner and active permissions as well as the
+        options (e.g. votes, memo key)
+    """
+    from bitsharesbase import transactions, operations
+    account = Account(account)
+    op = {
+        "fee": {"amount": 0, "asset_id": "1.3.0"},
+        "registrar": account["id"],
+        "referrer": account["id"],
+        "referrer_percent": 100,
+        "name": account_name,
+        'owner': account["owner"],
+        'active': account["active"],
+        "options": account["options"],
+        "extensions": {},
+        "prefix": ctx.bitshares.rpc.chain_params["prefix"]
+    }
+    op = operations.Account_create(**op)
+    pprint(ctx.bitshares.finalizeOp(op, account, "active"))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.option(
+    "--key",
+    prompt="Memo Key",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@unlockWallet
+def changememokey(ctx, key, account):
+    """ Change the memo key of an account
+    """
+    pprint(ctx.bitshares.update_memo_key(
+        key,
+        account=account,
+    ))
