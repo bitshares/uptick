@@ -51,7 +51,7 @@ def info(ctx, objects):
             else:
                 click.echo("Block number %s unknown" % obj)
         # Object Id
-        elif len(obj.split(".")) == 3:
+        elif re.match("^\d*\.\d*\.\d*$", obj):
             data = ctx.bitshares.rpc.get_object(obj)
             if data:
                 t = PrettyTable(["Key", "Value"])
@@ -142,10 +142,10 @@ def fees(ctx, currency):
         price = ticker.get("quoteSettlement_price")
     else:
         price = ticker.get("latest", 0)
+    price.invert()
 
     chain = Blockchain(bitshares_instance=ctx.bitshares)
     feesObj = chain.chainParameters().get("current_fees")
-    scale = feesObj["scale"]
     fees = feesObj["parameters"]
 
     t = PrettyTable(["Operation", "Type", "Fee", currency])
