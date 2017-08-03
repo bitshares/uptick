@@ -315,6 +315,7 @@ def spread(ctx, market, side, min, max, num, total, order_expiration, account):
         :param int order_expiration: Number of seconds until the order expires from the books
 
     """
+    from tqdm import tqdm
     from numpy import linspace
     market = Market(market)
     ctx.bitshares.bundle = True
@@ -325,36 +326,9 @@ def spread(ctx, market, side, min, max, num, total, order_expiration, account):
         space = linspace(max, min, num)
 
     func = getattr(market, side)
-    for p in space:
+    for p in tqdm(space):
         func(p, total / float(num), account=account, expiration=order_expiration)
     pprint(ctx.bitshares.txbuffer.broadcast())
-
-
-@main.command()
-@click.pass_context
-@onlineChain
-@click.argument(
-    "account",
-    required=False,
-    default=config["default_account"],
-    type=str,
-)
-def calls(ctx, account):
-    """ List call/short positions of an account
-    """
-    from bitshares.dex import Dex
-    dex = Dex(bitshares_instance=ctx.bitshares)
-    t = PrettyTable(["debt", "collateral", "call price", "ratio"])
-    t.align = 'r'
-    calls = dex.list_debt_positions(account=account)
-    for symbol in calls:
-        t.add_row([
-            str(calls[symbol]["debt"]),
-            str(calls[symbol]["collateral"]),
-            str(calls[symbol]["call_price"]),
-            "%.2f" % (calls[symbol]["ratio"])
-        ])
-    click.echo(str(t))
 
 
 @main.command()

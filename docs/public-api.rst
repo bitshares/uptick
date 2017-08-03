@@ -29,11 +29,18 @@ This is the ``config.ini`` file for the witness_node:
 
 ::
 
-    rpc-endpoint = 127.0.0.1:28090
-    enable-stale-production = false
-    required-participation = false
-    bucket-size = [15,60,300,3600,86400]
-    history-per-size = 1000
+    rpc-endpoint = 127.0.0.1:28090        # Accepts JSON-HTTP-RPC requests on localhost:28090
+    required-participation = false        # Do not fail if block
+                                          # production stops or you are disconnected from
+                                          # the p2p network
+    bucket-size = [15,60,300,3600,86400]  # The buckets (in seconds) for the market trade history
+    history-per-size = 1000               # Amount of buckets to store
+    max-ops-per-account = 1000            # Max amount of operations to store in the 
+                                          # database, per account 
+                                          # (drastically reduces RAM requirements)
+    partial-operations = true             # Remove old operation history
+                                          # objects from RAM
+
 
 This opens up the port ``28090`` for localhost. Going forward, you can either open up this port directly to the public, or tunnel it through a webserver (such as nginx) to add SSL on top, do load balancing, throttling etc.
 
@@ -60,6 +67,12 @@ The configuration would look like this
        listen 443 ssl;
        server_name this.uptick.rocks;
        root /var/www/html/;
+
+       # Force HTTPS (this may break some websocket clients that try to
+       # connect via HTTP)
+       if ($scheme != "https") {
+               return 301 https://$host$request_uri;
+       }
 
        keepalive_timeout 65;
        keepalive_requests 100000;
@@ -92,11 +105,6 @@ The configuration would look like this
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection "upgrade";
        }
-
-       location ~ /.well-known {
-           allow all;
-       }
-
    }
 
 As you can see from the ``upstream`` block, the node actually uses a load balancing and failover across **two** locally running ``witness_node`` nodes.
