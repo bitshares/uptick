@@ -12,9 +12,11 @@ added:::
 
 On first run, you will be asked to provide a new passphrase that you
 will need to provide every time you want to post on the BitShares network.
-If you chose an *empty* password, your keys will be stored in plain text
-which allows automated posting but exposes your private key to your
-local user.
+Using an empty password is not allowed, however, you can used the
+`UNLOCK` environmental variable if you need to automatically unlock the
+wallet with uptick:::
+
+    UNLOCK="password" uptick transfer ....
 
 List available Keys and accounts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

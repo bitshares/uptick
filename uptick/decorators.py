@@ -65,6 +65,36 @@ def offline(f):
     return update_wrapper(new_func, f)
 
 
+def customchain(**kwargsChain):
+    """ This decorator allows you to access ``ctx.bitshares`` which is
+        an instance of BitShares. But in contrast to @chain, this is a
+        decorator that expects parameters that are directed right to
+        ``BitShares()``.
+
+        ... code-block::python
+
+                @main.command()
+                @click.option("--worker", default=None)
+                @click.pass_context
+                @customchain(foo="bar")
+                @unlock
+                def list(ctx, worker):
+                   print(ctx.obj)
+
+    """
+    def wrap(f):
+        @click.pass_context
+        @verbose
+        def new_func(ctx, *args, **kwargs):
+            newoptions = ctx.obj
+            newoptions.update(kwargsChain)
+            ctx.bitshares = BitShares(**newoptions)
+            set_shared_bitshares_instance(ctx.bitshares)
+            return ctx.invoke(f, *args, **kwargs)
+        return update_wrapper(new_func, f)
+    return wrap
+
+
 def chain(f):
     """ This decorator allows you to access ``ctx.bitshares`` which is
         an instance of BitShares.
