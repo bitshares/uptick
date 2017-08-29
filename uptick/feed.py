@@ -109,13 +109,16 @@ def feeds(ctx, assets, pricethreshold, maxage):
         current_feed = asset.feed
         feeds = asset.feeds
         producingwitnesses = builtins.set()
+        witness_accounts = [
+            x["witness_account"] for x in witnesses
+        ]
         for feed in tqdm(feeds):
             producingwitnesses.add(feed["producer"]["id"])
             t.add_row([
                 asset["symbol"],
                 feed["producer"]["name"],
                 click.style(
-                    "X" if feed["producer"]["id"] in witnesses.schedule else "",
+                    "X" if feed["producer"]["id"] in witness_accounts else "",
                     bold=True),
                 test_date(feed["date"]),
                 test_price(feed["settlement_price"], current_feed["settlement_price"]),
@@ -123,13 +126,13 @@ def feeds(ctx, assets, pricethreshold, maxage):
                 feed["maintenance_collateral_ratio"] / 10,
                 feed["maximum_short_squeeze_ratio"] / 10,
             ])
-        for missing in (builtins.set(witnesses.schedule).difference(producingwitnesses)):
+        for missing in (builtins.set(witness_accounts).difference(producingwitnesses)):
             witness = Witness(missing)
             t.add_row([
                 click.style(asset["symbol"], bg="red"),
                 click.style(witness.account["name"], bg="red"),
                 click.style(
-                    "x" if feed["producer"]["id"] in witnesses.schedule else "",
+                    "X" if feed["producer"]["id"] in witness_accounts else "",
                     bold=True),
                 click.style(str(datetime(1970, 1, 1))),
                 click.style("missing", bg="red"),
