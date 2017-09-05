@@ -38,18 +38,15 @@ def info(ctx, objects):
     for obj in objects:
         # Block
         if re.match("^[0-9]*$", obj):
-            block = Block(obj, bitshares_instance=ctx.bitshares)
-            if block:
-                t = PrettyTable(["Key", "Value"])
-                t.align = "l"
-                for key in sorted(block):
-                    value = block[key]
-                    if key == "transactions":
-                        value = json.dumps(value, indent=4)
-                    t.add_row([key, value])
-                click.echo(t)
-            else:
-                click.echo("Block number %s unknown" % obj)
+            block = Block(obj, lazy=False, bitshares_instance=ctx.bitshares)
+            t = PrettyTable(["Key", "Value"])
+            t.align = "l"
+            for key in sorted(block):
+                value = block[key]
+                if key == "transactions":
+                    value = json.dumps(value, indent=4)
+                t.add_row([key, value])
+            click.echo(t)
         # Object Id
         elif re.match("^\d*\.\d*\.\d*$", obj):
             data = ctx.bitshares.rpc.get_object(obj)
