@@ -75,9 +75,9 @@ def feeds(ctx, assets, pricethreshold, maxage):
     witnesses = Witnesses(bitshares_instance=ctx.bitshares)
 
     def test_price(p, ref):
-        if (math.fabs((p / ref) - 1.0) > pricethreshold / 100.0):
+        if (math.fabs(float(p / ref) - 1.0) > pricethreshold / 100.0):
             return click.style(str(p), fg="red")
-        elif (math.fabs((p / ref) - 1.0) > pricethreshold / 2.0 / 100.0):
+        elif (math.fabs(float(p / ref) - 1.0) > pricethreshold / 2.0 / 100.0):
             return click.style(str(p), fg="yellow")
         else:
             return click.style(str(p), fg="green")
