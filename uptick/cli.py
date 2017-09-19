@@ -31,7 +31,8 @@ from . import (
     witness,
     workers,
     api,
-    callorders
+    callorders,
+    vesting
 )
 log = logging.getLogger(__name__)
 
