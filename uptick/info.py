@@ -83,7 +83,7 @@ def info(ctx, objects):
                 t.add_row([account])
                 click.echo(t)
             else:
-                click.echo("Public Key not known" % obj)
+                click.echo("Public Key not known: %s" % obj)
 
         # Account name
         elif re.match("^[a-zA-Z0-9\-\._]{2,64}$", obj):
