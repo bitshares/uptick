@@ -15,7 +15,7 @@ from .ui import (
     '--node',
     type=str,
     default=config["node"],
-    help='Websocket URL for public BitShares API (default: "wss://this.uptick.rocks/")'
+    help='Websocket URL for public BitShares API'
 )
 @click.option(
     '--rpcuser',
@@ -56,6 +56,10 @@ from .ui import (
     expose_value=False,
     is_eager=True,
     help="Show version")
+@click.option(
+    '--blocking',
+    is_flag=True,
+    help="Wait for transaction to be included into a block")
 @click.pass_context
 def main(ctx, **kwargs):
     ctx.obj = {}
