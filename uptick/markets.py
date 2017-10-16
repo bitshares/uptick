@@ -392,3 +392,27 @@ def updateratio(ctx, symbol, ratio, account):
         ratio,
         account=account
     ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "symbol",
+    type=str,
+)
+@click.argument(
+    "amount",
+    type=float,
+)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to use for this action"
+)
+@unlockWallet
+def fundfeepool(ctx, symbol, amount, account):
+    """ Fund the fee pool of an asset
+    """
+    pprint(ctx.bitshares.fund_fee_pool(symbol, amount, account=account))
