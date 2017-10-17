@@ -2,7 +2,7 @@ import json
 import click
 from pprint import pprint
 from bitshares.storage import configStorage as config
-from bitshares.proposal import Proposal, Proposals
+from bitshares.proposal import Proposals
 from prettytable import PrettyTable
 from .decorators import (
     onlineChain,
@@ -79,15 +79,15 @@ def proposals(ctx, account):
         t.add_row([
             proposal["id"],
             proposal["expiration_time"],
-            (
+            json.dumps(
                 proposal["required_active_approvals"] +
-                proposal["required_owner_approvals"]
-            ),
-            (
+                proposal["required_owner_approvals"],
+                indent=1),
+            json.dumps(
                 proposal["available_active_approvals"] +
                 proposal["available_key_approvals"] +
-                proposal["available_owner_approvals"]
-            ),
+                proposal["available_owner_approvals"],
+                indent=1),
             proposal.get("review_period_time", None),
             json.dumps(proposal["proposed_transaction"], indent=4),
         ])
