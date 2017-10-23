@@ -35,8 +35,29 @@ from .main import main
     help="Account that takes this action",
     default=config["default_account"],
     type=str)
+@click.option(
+    '--cer',
+    help="Core Exchange Rate",
+    default=None,
+    type=float)
+@click.option(
+    '--mssr',
+    help="Percentage for max short squeeze ratio (e.g., 110)",
+    default=110,
+    type=float)
+@click.option(
+    '--mcr',
+    help="Percentage for maintenance collateral ratio (e.g., 200)",
+    default=200,
+    type=float)
 @unlockWallet
-def newfeed(ctx, symbol, price, market, account):
+def newfeed(
+    ctx, symbol,
+    price,
+    market,
+    cer, mssr, mcr,
+    account
+):
     """ Publish a price feed!
 
         Examples:
@@ -45,9 +66,15 @@ def newfeed(ctx, symbol, price, market, account):
             uptick newfeed USD 0.01 USD/BTS
             uptick newfeed USD 100 BTS/USD
     """
+    if cer:
+        cer = Price(cer, market)
+
     pprint(ctx.bitshares.publish_price_feed(
         symbol,
         Price(price, market),
+        cer=cer,
+        mssr=mssr,
+        mcr=mcr,
         account=account
     ))
 
