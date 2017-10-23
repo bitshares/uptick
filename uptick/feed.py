@@ -47,7 +47,8 @@ def newfeed(ctx, symbol, price, market, account):
     """
     pprint(ctx.bitshares.publish_price_feed(
         symbol,
-        Price(price, market)
+        Price(price, market),
+        account=account
     ))
 
 
