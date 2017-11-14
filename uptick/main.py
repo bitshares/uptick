@@ -39,7 +39,7 @@ from .ui import (
     default=False,
     help='Do not try to sign the transaction')
 @click.option(
-    '--expires',
+    '--expiration',
     '-e',
     default=30,
     help='Expiration time in seconds (defaults to 30)')
