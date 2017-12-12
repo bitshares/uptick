@@ -12,6 +12,22 @@ from .main import main
 
 @main.command()
 @click.pass_context
+@click.option(
+    '--password',
+    prompt="Wallet Passphrase",
+    hide_input=True,
+    confirmation_prompt=True,
+    help="New Wallet Passphrase"
+)
+@offlineChain
+def createwallet(ctx, password):
+    """ Change the wallet passphrase
+    """
+    ctx.bitshares.wallet.create(password)
+
+
+@main.command()
+@click.pass_context
 @offlineChain
 @click.option(
     '--new-password',
