@@ -15,7 +15,7 @@ from .ui import (
     '--node',
     type=str,
     default=config["node"],
-    help='Websocket URL for public BitShares API (default: "wss://this.uptick.rocks/")'
+    help='Websocket URL for public BitShares API'
 )
 @click.option(
     '--rpcuser',
@@ -39,7 +39,24 @@ from .ui import (
     default=False,
     help='Do not try to sign the transaction')
 @click.option(
-    '--expires',
+    '--proposer',
+    help="Propose transaction with this account",
+    type=str
+)
+@click.option(
+    '--proposal_review',
+    help="Propose review time in seconds (defaults to 0)",
+    type=int,
+    default=0
+)
+@click.option(
+    '--proposal_expiration',
+    help="Propose expiration time in seconds (defaults to 24h)",
+    type=int,
+    default=60 * 60 * 24
+)
+@click.option(
+    '--expiration',
     '-e',
     default=30,
     help='Expiration time in seconds (defaults to 30)')
@@ -56,6 +73,10 @@ from .ui import (
     expose_value=False,
     is_eager=True,
     help="Show version")
+@click.option(
+    '--blocking',
+    is_flag=True,
+    help="Wait for transaction to be included into a block")
 @click.pass_context
 def main(ctx, **kwargs):
     ctx.obj = {}
