@@ -1,14 +1,8 @@
 import yaml
 import os
-import json
-import sys
 from bitshares import BitShares
-from bitshares.account import Account
-from bitshares.amount import Amount
 from bitshares.instance import set_shared_bitshares_instance
-from prettytable import PrettyTable, ALL as allBorders
 from functools import update_wrapper
-import pkg_resources
 import click
 import logging
 log = logging.getLogger(__name__)
@@ -24,7 +18,8 @@ def verbose(f):
             "critical", "error", "warn", "info", "debug"
         ][int(min(ctx.obj.get("verbose", 0), 4))]
         log.setLevel(getattr(logging, verbosity.upper()))
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         ch = logging.StreamHandler()
         ch.setLevel(getattr(logging, verbosity.upper()))
         ch.setFormatter(formatter)
@@ -119,11 +114,15 @@ def unlock(f):
                 if "UNLOCK" in os.environ:
                     pwd = os.environ["UNLOCK"]
                 else:
-                    pwd = click.prompt("Current Wallet Passphrase", hide_input=True)
+                    pwd = click.prompt(
+                        "Current Wallet Passphrase", hide_input=True)
                 ctx.bitshares.wallet.unlock(pwd)
             else:
                 click.echo("No wallet installed yet. Creating ...")
-                pwd = click.prompt("Wallet Encryption Passphrase", hide_input=True, confirmation_prompt=True)
+                pwd = click.prompt(
+                    "Wallet Encryption Passphrase",
+                    hide_input=True,
+                    confirmation_prompt=True)
                 ctx.bitshares.wallet.create(pwd)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
@@ -142,6 +141,6 @@ def configfile(f):
 
 # Aliases
 onlineChain = chain
-online = onlineChain
+online = chain
 offlineChain = offline
 unlockWallet = unlock
