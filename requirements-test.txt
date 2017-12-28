@@ -2,3 +2,4 @@
 -e git://github.com/xeroc/python-bitshares@develop#egg=bitshares
 pytest
 coverage
+tqdm
