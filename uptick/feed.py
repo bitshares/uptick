@@ -3,6 +3,7 @@ import click
 from prettytable import PrettyTable
 from pprint import pprint
 from tqdm import tqdm
+from bitshares.market import Market
 from bitshares.storage import configStorage as config
 from bitshares.price import Price
 from bitshares.witness import Witness, Witnesses
@@ -65,9 +66,23 @@ def newfeed(
             \b
             uptick newfeed USD 0.01 USD/BTS
             uptick newfeed USD 100 BTS/USD
+
+        Core Exchange Rate (CER)
+        \b
+        If no CER is provided, the cer will be the same as the settlement price
+        with a 5% premium (Only if the 'market' is against the core asset (e.g.
+        BTS)). The CER is always defined against the core asset (BTS). This
+        means that if the backing asset is not the core asset (BTS), then you must
+        specify your own cer as a float. The float `x` will be interpreted as
+        `x BTS/SYMBOL`.
     """
     if cer:
-        cer = Price(cer, market)
+        cer = Price(
+            cer,
+            quote=symbol,
+            base="1.3.0",
+            bitshares_instance=ctx.bitshares
+        )
 
     pprint(ctx.bitshares.publish_price_feed(
         symbol,
