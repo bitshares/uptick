@@ -39,6 +39,23 @@ from .ui import (
     default=False,
     help='Do not try to sign the transaction')
 @click.option(
+    '--proposer',
+    help="Propose transaction with this account",
+    type=str
+)
+@click.option(
+    '--proposal_review',
+    help="Propose review time in seconds (defaults to 0)",
+    type=int,
+    default=0
+)
+@click.option(
+    '--proposal_expiration',
+    help="Propose expiration time in seconds (defaults to 24h)",
+    type=int,
+    default=60 * 60 * 24
+)
+@click.option(
     '--expiration',
     '-e',
     default=30,
