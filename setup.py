@@ -33,7 +33,7 @@ setup(
         ],
     },
     install_requires=[
-        "bitshares>=0.1.8",
+        "bitshares>=0.1.9",
         "prettytable",
         "click",
         "click-datetime",
