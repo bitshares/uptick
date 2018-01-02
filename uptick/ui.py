@@ -73,6 +73,8 @@ def pprintOperation(op):
         return str(FilledOrder(op))
     elif id == 2:
         return "Canceled order %s" % op["order"]
+    elif id == 33:
+        return "Claiming from vesting: %s" % str(Amount(op["amount"]))
     elif id == 0:
         from_account = Account(op["from"])
         to_account = Account(op["to"])

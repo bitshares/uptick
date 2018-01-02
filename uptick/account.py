@@ -3,6 +3,7 @@ import json
 import click
 from pprint import pprint
 from prettytable import PrettyTable
+from bitshares.block import Block, BlockHeader
 from bitshares.account import Account
 from bitshares.storage import configStorage as config
 from .decorators import (
@@ -148,9 +149,10 @@ def history(ctx, account, limit, type, csv, exclude, raw):
             only_ops=type,
             exclude_ops=exclude
         ):
+            block = BlockHeader(b["block_num"])
             row = [
                 b["id"].split(".")[2],
-                "%s" % (b["block_num"]),
+                "%s (%s)" % (block.time(), b["block_num"]),
                 "{} ({})".format(getOperationNameForId(b["op"][0]), b["op"][0]),
                 pprintOperation(b) if not raw else json.dumps(b, indent=4),
             ]
