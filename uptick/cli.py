@@ -32,7 +32,8 @@ from . import (
     workers,
     api,
     callorders,
-    vesting
+    vesting,
+    message
 )
 log = logging.getLogger(__name__)
 
