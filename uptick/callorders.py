@@ -1,3 +1,4 @@
+import sys
 import click
 from pprint import pprint
 from prettytable import PrettyTable
@@ -70,8 +71,13 @@ def calls(ctx, obj):
     type=str,
 )
 def settlements(ctx, asset):
+    """ Show pending settlement orders of a bitasset
+    """
     from bitshares.asset import Asset
     asset = Asset(asset, full=True)
+    if not asset.is_bitasset:
+        click.echo("{} is not a bitasset.".format(asset["symbol"]))
+        sys.exit(1)
     calls = asset.get_settle_orders(10)
     t = PrettyTable(["acount", "amount", "date"])
     t.align = 'r'
