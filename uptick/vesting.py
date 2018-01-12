@@ -70,4 +70,5 @@ def claim(ctx, vestingid, account, amount):
 @unlock
 def reserve(ctx, amount, symbol, account):
     pprint(ctx.bitshares.reserve(
-        Amount(amount, symbol, bitshares_instance=ctx.bitshares)))
+        Amount(amount, symbol, bitshares_instance=ctx.bitshares),
+        account=account))
