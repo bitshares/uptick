@@ -77,6 +77,8 @@ def pprintOperation(op):
         return "Canceled order %s" % op["order"]
     elif id == 33:
         return "Claiming from vesting: %s" % str(Amount(op["amount"]))
+    elif id == 15:
+        return "Reserve {}".format(str(Amount(op["amount_to_reserve"])))
     elif id == 0:
         from_account = Account(op["from"])
         to_account = Account(op["to"])
