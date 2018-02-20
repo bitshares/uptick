@@ -48,3 +48,22 @@ def disapprovecommittee(ctx, members, account):
         members,
         account=account
     ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument('url', type=str)
+@click.option(
+    "--account",
+    help="Account that takes this action",
+    default=config["default_account"],
+    type=str)
+@unlockWallet
+def createcommittee(ctx, url, account):
+    """ Setup a committee account for your account
+    """
+    pprint(ctx.bitshares.create_committee_member(
+        url,
+        account=account
+    ))
