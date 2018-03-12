@@ -33,7 +33,8 @@ from . import (
     api,
     callorders,
     vesting,
-    message
+    message,
+    rpc
 )
 log = logging.getLogger(__name__)
 
