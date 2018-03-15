@@ -3,6 +3,7 @@ import click
 from pprint import pprint
 from bitshares.storage import configStorage as config
 from bitshares.proposal import Proposals
+from bitshares.account import Account
 from prettytable import PrettyTable
 from .decorators import (
     onlineChain,
@@ -79,12 +80,12 @@ def proposals(ctx, account):
         t.add_row([
             proposal["id"],
             proposal["expiration_time"],
-            json.dumps(
+            [Account(x)["name"] for x in (
                 proposal["required_active_approvals"] +
-                proposal["required_owner_approvals"],
-                indent=1),
+                proposal["required_owner_approvals"]
+            )],
             json.dumps(
-                proposal["available_active_approvals"] +
+                [Account(x)["name"] for x in proposal["available_active_approvals"]] +
                 proposal["available_key_approvals"] +
                 proposal["available_owner_approvals"],
                 indent=1),

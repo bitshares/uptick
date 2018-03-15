@@ -53,3 +53,22 @@ def claim(ctx, vestingid, account, amount):
         amount=amount,
         account=vesting["owner"]
     ))
+
+
+@main.command()
+@click.option("--account", default=None)
+@click.argument(
+    "amount",
+    type=float
+)
+@click.argument(
+    "symbol",
+    type=str
+)
+@click.pass_context
+@online
+@unlock
+def reserve(ctx, amount, symbol, account):
+    pprint(ctx.bitshares.reserve(
+        Amount(amount, symbol, bitshares_instance=ctx.bitshares),
+        account=account))

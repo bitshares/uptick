@@ -209,3 +209,14 @@ def importaccount(ctx, account, role):
 
     if not imported:
         click.echo("No matching key(s) found. Password correct?")
+
+
+@main.command()
+@click.pass_context
+@click.option(
+    '--ignore-warning/--no-ignore-warning',
+    prompt="Are you sure you want to wipe your wallet? This action is irreversible!",
+)
+@offlineChain
+def wipewallet(ctx, ignore_warning):
+    ctx.bitshares.wallet.wipe(ignore_warning)

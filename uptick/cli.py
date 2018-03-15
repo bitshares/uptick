@@ -32,7 +32,9 @@ from . import (
     workers,
     api,
     callorders,
-    vesting
+    vesting,
+    message,
+    rpc
 )
 log = logging.getLogger(__name__)
 

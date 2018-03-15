@@ -71,8 +71,14 @@ def pprintOperation(op):
         return str(Order(op))
     elif id == 4:
         return str(FilledOrder(op))
+    elif id == 5:
+        return "New account created for {}".format(op["name"])
     elif id == 2:
         return "Canceled order %s" % op["order"]
+    elif id == 33:
+        return "Claiming from vesting: %s" % str(Amount(op["amount"]))
+    elif id == 15:
+        return "Reserve {}".format(str(Amount(op["amount_to_reserve"])))
     elif id == 0:
         from_account = Account(op["from"])
         to_account = Account(op["to"])
