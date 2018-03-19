@@ -1,6 +1,7 @@
 import yaml
 import os
 from bitshares import BitShares
+from bitshares.exceptions import WrongMasterPasswordException
 from bitshares.instance import set_shared_bitshares_instance
 from functools import update_wrapper
 import click
@@ -111,12 +112,19 @@ def unlock(f):
     def new_func(ctx, *args, **kwargs):
         if not ctx.obj.get("unsigned", False):
             if ctx.bitshares.wallet.created():
-                if "UNLOCK" in os.environ:
-                    pwd = os.environ["UNLOCK"]
-                else:
-                    pwd = click.prompt(
-                        "Current Wallet Passphrase", hide_input=True)
-                ctx.bitshares.wallet.unlock(pwd)
+                while True:
+                    if "UNLOCK" in os.environ:
+                        pwd = os.environ["UNLOCK"]
+                    else:
+                        pwd = click.prompt(
+                            "Current Wallet Passphrase", hide_input=True)
+                    try:
+                        ctx.bitshares.wallet.unlock(pwd)
+                    except WrongMasterPasswordException:
+                        click.echo("Incorrect Wallet passphrase!")
+                        continue
+                    except:
+                        break
             else:
                 click.echo("No wallet installed yet. Creating ...")
                 pwd = click.prompt(
