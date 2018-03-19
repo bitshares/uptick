@@ -123,8 +123,7 @@ def unlock(f):
                     except WrongMasterPasswordException:
                         click.echo("Incorrect Wallet passphrase!")
                         continue
-                    except:
-                        break
+                    break
             else:
                 click.echo("No wallet installed yet. Creating ...")
                 pwd = click.prompt(
