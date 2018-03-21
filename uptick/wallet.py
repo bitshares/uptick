@@ -219,4 +219,6 @@ def importaccount(ctx, account, role):
 )
 @offlineChain
 def wipewallet(ctx, ignore_warning):
+    """ Wipe the wallet (keep configuration)
+    """
     ctx.bitshares.wallet.wipe(ignore_warning)

@@ -360,7 +360,8 @@ def borrow(ctx, amount, symbol, ratio, account):
     dex = Dex(bitshares_instance=ctx.bitshares)
     pprint(dex.borrow(
         Amount(amount, symbol),
-        ratio
+        collateral_ratio=ratio,
+        account=account
     ))
 
 
