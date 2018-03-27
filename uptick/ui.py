@@ -30,10 +30,10 @@ def print_permissions(account):
     for permission in ["owner", "active"]:
         auths = []
         # account auths:
-        for authority in account[permission]["account_auths"]:
+        for authority in sorted(account[permission]["account_auths"], key=lambda x: x[1], reverse=True):
             auths.append("%s (%d)" % (Account(authority[0])["name"], authority[1]))
         # key auths:
-        for authority in account[permission]["key_auths"]:
+        for authority in sorted(account[permission]["key_auths"], key=lambda x: x[1], reverse=True):
             auths.append("%s (%d)" % (authority[0], authority[1]))
         t.add_row([
             permission,
