@@ -23,4 +23,4 @@ Upgrade
 
 .. code-block:: sh
 
-   pip install --user --upgrade uptick
+   pip3 install uptick --user --upgrade
