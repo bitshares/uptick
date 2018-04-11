@@ -1,4 +1,6 @@
 import click
+from prettytable import PrettyTable
+from bitshares.witness import Witnesses
 from bitshares.storage import configStorage as config
 from pprint import pprint
 from .decorators import (
@@ -48,3 +50,35 @@ def disapprovewitness(ctx, witnesses, account):
         witnesses,
         account=account
     ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+def witnesses(ctx):
+    t = PrettyTable([
+        "weight",
+        "account",
+        "signing_key",
+        "vote_id",
+        "url",
+        "total_missed",
+        "last_confirmed_block_num"
+    ])
+    t.align = 'l'
+    for witness in sorted(
+        Witnesses(),
+        key=lambda x: x.weight,
+        reverse=True
+    ):
+        witness.refresh()
+        t.add_row([
+            "{:.2f}%".format(witness.weight * 100),
+            witness.account["name"],
+            witness["signing_key"],
+            witness["vote_id"],
+            witness["url"],
+            witness["total_missed"],
+            witness["last_confirmed_block_num"]
+        ])
+    click.echo(t)
