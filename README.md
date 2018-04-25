@@ -19,7 +19,8 @@ Swiss army knife for interacting with the BitShares blockchain.
 ## Installation
 
 ```
-pip3 install uptick
+sudo apt install python3-pip
+sudo pip3 install uptick
 ```
 
 ## Documentation
