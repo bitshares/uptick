@@ -339,3 +339,63 @@ def changememokey(ctx, key, account):
         key,
         account=account,
     ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "whitelist_account",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@unlockWallet
+def whitelist(ctx, whitelist_account, account):
+    """ Add an account to a whitelist
+    """
+    account = Account(account, blockchain_instance=ctx.blockchain)
+    pprint(account.whitelist(whitelist_account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "blacklist_account",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@unlockWallet
+def blacklist(ctx, blacklist_account, account):
+    """ Add an account to a blacklist
+    """
+    account = Account(account, blockchain_instance=ctx.blockchain)
+    pprint(account.blacklist(blacklist_account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "unlist_account",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to be modified"
+)
+@unlockWallet
+def unlist(ctx, unlist_account, account):
+    """ Remove an account from any list
+    """
+    account = Account(account, blockchain_instance=ctx.blockchain)
+    pprint(account.nolist(unlist_account))

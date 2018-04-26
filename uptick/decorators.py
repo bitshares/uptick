@@ -56,6 +56,7 @@ def offline(f):
     def new_func(ctx, *args, **kwargs):
         ctx.obj["offline"] = True
         ctx.bitshares = BitShares(**ctx.obj)
+        ctx.blockchain = ctx.bitshares
         set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
@@ -85,6 +86,7 @@ def customchain(**kwargsChain):
             newoptions = ctx.obj
             newoptions.update(kwargsChain)
             ctx.bitshares = BitShares(**newoptions)
+            ctx.blockchain = ctx.bitshares
             set_shared_bitshares_instance(ctx.bitshares)
             return ctx.invoke(f, *args, **kwargs)
         return update_wrapper(new_func, f)
@@ -99,6 +101,7 @@ def chain(f):
     @verbose
     def new_func(ctx, *args, **kwargs):
         ctx.bitshares = BitShares(**ctx.obj)
+        ctx.blockchain = ctx.bitshares
         set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
