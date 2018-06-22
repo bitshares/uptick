@@ -399,3 +399,41 @@ def unlist(ctx, unlist_account, account):
     """
     account = Account(account, blockchain_instance=ctx.blockchain)
     pprint(account.nolist(unlist_account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "proxy_account",
+    type=str)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to be modified",
+    type=str)
+@unlockWallet
+def setproxy(ctx, proxy_account, account):
+    """ Set the proxy account for an account
+    """
+    pprint(ctx.bitshares.set_proxy(
+        proxy_account,
+        account=account
+    ))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.option(
+    "--account",
+    default=config["default_account"],
+    help="Account to be modified",
+    type=str)
+@unlockWallet
+def unsetproxy(ctx, account):
+    """ Clear proxy for an account
+    """
+    pprint(ctx.bitshares.unset_proxy(
+        account=account
+    ))
