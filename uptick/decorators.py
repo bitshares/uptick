@@ -1,6 +1,7 @@
 import yaml
 import os
 from bitshares import BitShares
+from bitshares.exceptions import WrongMasterPasswordException
 from bitshares.instance import set_shared_bitshares_instance
 from functools import update_wrapper
 import click
@@ -55,6 +56,7 @@ def offline(f):
     def new_func(ctx, *args, **kwargs):
         ctx.obj["offline"] = True
         ctx.bitshares = BitShares(**ctx.obj)
+        ctx.blockchain = ctx.bitshares
         set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
@@ -84,6 +86,7 @@ def customchain(**kwargsChain):
             newoptions = ctx.obj
             newoptions.update(kwargsChain)
             ctx.bitshares = BitShares(**newoptions)
+            ctx.blockchain = ctx.bitshares
             set_shared_bitshares_instance(ctx.bitshares)
             return ctx.invoke(f, *args, **kwargs)
         return update_wrapper(new_func, f)
@@ -98,6 +101,7 @@ def chain(f):
     @verbose
     def new_func(ctx, *args, **kwargs):
         ctx.bitshares = BitShares(**ctx.obj)
+        ctx.blockchain = ctx.bitshares
         set_shared_bitshares_instance(ctx.bitshares)
         return ctx.invoke(f, *args, **kwargs)
     return update_wrapper(new_func, f)
@@ -111,12 +115,18 @@ def unlock(f):
     def new_func(ctx, *args, **kwargs):
         if not ctx.obj.get("unsigned", False):
             if ctx.bitshares.wallet.created():
-                if "UNLOCK" in os.environ:
-                    pwd = os.environ["UNLOCK"]
-                else:
-                    pwd = click.prompt(
-                        "Current Wallet Passphrase", hide_input=True)
-                ctx.bitshares.wallet.unlock(pwd)
+                while True:
+                    if "UNLOCK" in os.environ:
+                        pwd = os.environ["UNLOCK"]
+                    else:
+                        pwd = click.prompt(
+                            "Current Wallet Passphrase", hide_input=True)
+                    try:
+                        ctx.bitshares.wallet.unlock(pwd)
+                    except WrongMasterPasswordException:
+                        click.echo("Incorrect Wallet passphrase!")
+                        continue
+                    break
             else:
                 click.echo("No wallet installed yet. Creating ...")
                 pwd = click.prompt(
