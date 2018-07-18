@@ -126,13 +126,14 @@ def feeds(ctx, assets, pricethreshold, maxage):
             return click.style(str(p), fg="green")
 
     def test_date(d):
+        t = d.replace(tzinfo=None)
         now = datetime.utcnow()
-        if now < d + timedelta(minutes=maxage):
-            return click.style(str(d), fg="green")
-        if now < d + timedelta(minutes=maxage / 2.0):
-            return click.style(str(d), fg="yellow")
+        if now < t + timedelta(minutes=maxage):
+            return click.style(str(t), fg="green")
+        if now < t + timedelta(minutes=maxage / 2.0):
+            return click.style(str(t), fg="yellow")
         else:
-            return click.style(str(d), fg="red")
+            return click.style(str(t), fg="red")
 
     output = ""
     for asset in tqdm(assets):
