@@ -34,7 +34,8 @@ from . import (
     callorders,
     vesting,
     message,
-    rpc
+    rpc,
+    votes
 )
 log = logging.getLogger(__name__)
 
