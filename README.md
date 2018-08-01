@@ -33,16 +33,6 @@ sudo apt install python3-pip
 sudo pip3 install uptick
 ```
 
-## Public API
-
-The public API node at `this.uptick.rocks` serves as an experimental
-endpoint. 
-
-* Use it for prototyping of your tools
-* Use it for testing
-* Do not expect it to be reliable
-* Do not spam it with unnecessary load
-
 ## Contributing
 
 uptick welcomes contributions from anyone and everyone. Please
