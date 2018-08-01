@@ -1,10 +1,12 @@
 .PHONY: clean-pyc clean-build docs
 
-# 
 clean: clean-build clean-pyc
 
 clean-build:
-	rm -fr build/ dist/ *.egg-info .eggs/ .tox/ __pycache__/ .cache/ .coverage htmlcov src
+	rm -fr build/
+	rm -fr dist/
+	rm -fr *.egg-info
+	rm -fr __pycache__/ .eggs/ .cache/ .tox/
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -13,6 +15,9 @@ clean-pyc:
 
 lint:
 	flake8 uptick/
+
+test:
+	python3 setup.py test
 
 build:
 	python3 setup.py build
@@ -34,4 +39,11 @@ dist:
 	python3 setup.py sdist upload -r pypi
 	python3 setup.py bdist_wheel upload
 
+docs:
+	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
+	make -C docs clean html
+
 release: clean check dist git
+
+authors:
+	git shortlog -e -s -n > AUTHORS
