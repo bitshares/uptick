@@ -68,10 +68,7 @@ def configuration(ctx):
     t = PrettyTable(["Key", "Value"])
     t.align = "l"
     for key in ctx.bitshares.config:
-        if key not in [
-            "encrypted_master_password"
-        ]:
-            t.add_row([key, ctx.bitshares.config[key]])
+        t.add_row([key, ctx.bitshares.config[key]])
     click.echo(t)
 
 
