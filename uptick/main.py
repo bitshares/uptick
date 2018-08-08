@@ -1,8 +1,10 @@
 import click
-from bitshares.storage import configStorage as config
+from bitshares.storage import get_default_config_store
 from .ui import (
     print_version,
 )
+
+config = get_default_config_store()
 
 
 @click.group()

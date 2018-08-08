@@ -7,7 +7,6 @@ import click
 from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.account import Account
-from bitshares.storage import configStorage as config
 from .decorators import (
     onlineChain,
     unlockWallet,
@@ -17,7 +16,7 @@ from .ui import (
     print_permissions,
     pprintOperation,
 )
-from .main import main
+from .main import main, config
 
 
 @main.group()

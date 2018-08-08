@@ -2,7 +2,6 @@ import json
 import click
 import datetime
 from prettytable import PrettyTable
-from bitshares.storage import configStorage as config
 from bitshares.worker import Workers
 from bitshares.account import Account
 from bitshares.amount import Amount
@@ -11,7 +10,7 @@ from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

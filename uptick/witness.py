@@ -1,13 +1,12 @@
 import click
 from prettytable import PrettyTable
 from bitshares.witness import Witnesses
-from bitshares.storage import configStorage as config
 from pprint import pprint
 from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

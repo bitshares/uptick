@@ -4,7 +4,6 @@ from pprint import pprint
 from prettytable import PrettyTable
 from click_datetime import Datetime
 from datetime import datetime, timedelta
-from bitshares.storage import configStorage as config
 from bitshares.market import Market
 from bitshares.amount import Amount
 from bitshares.account import Account
@@ -15,7 +14,7 @@ from .decorators import (
     online,
     unlock
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

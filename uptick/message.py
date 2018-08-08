@@ -1,11 +1,10 @@
 import click
-from bitshares.storage import configStorage as config
 from bitshares.message import Message
 from .decorators import (
     onlineChain,
     unlockWallet,
 )
-from .main import main
+from .main import main, config
 
 
 @main.group()

@@ -1,7 +1,6 @@
 import json
 import click
 from pprint import pprint
-from bitshares.storage import configStorage as config
 from bitshares.proposal import Proposals
 from bitshares.account import Account
 from prettytable import PrettyTable
@@ -9,7 +8,7 @@ from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

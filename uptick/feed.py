@@ -4,7 +4,6 @@ from prettytable import PrettyTable
 from pprint import pprint
 from tqdm import tqdm
 from bitshares.market import Market
-from bitshares.storage import configStorage as config
 from bitshares.price import Price
 from bitshares.witness import Witness, Witnesses
 from bitshares.asset import Asset
@@ -13,7 +12,7 @@ from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

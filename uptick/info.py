@@ -8,12 +8,11 @@ from bitshares.blockchain import Blockchain
 from bitshares.block import Block
 from bitshares.account import Account
 from bitshares.asset import Asset
-from bitshares.storage import configStorage as config
 from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

@@ -1,5 +1,4 @@
 import click
-from bitshares.storage import configStorage as config
 from bitshares.account import Account
 from prettytable import PrettyTable
 from .decorators import (
@@ -7,7 +6,7 @@ from .decorators import (
     offlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
 
 
 @main.command()

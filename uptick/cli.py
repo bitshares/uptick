@@ -5,7 +5,6 @@ import json
 import click
 import logging
 from pprint import pprint
-from bitshares.storage import configStorage as config
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 from .ui import (
@@ -57,20 +56,22 @@ def set(ctx, key, value):
     if (key == "default_account" and
             value[0] == "@"):
         value = value[1:]
-    config[key] = value
+    ctx.bitshares.config[key] = value
 
 
 @main.command()
-def configuration():
+@click.pass_context
+@offlineChain
+def configuration(ctx):
     """ Show configuration variables
     """
     t = PrettyTable(["Key", "Value"])
     t.align = "l"
-    for key in config:
+    for key in ctx.bitshares.config:
         if key not in [
             "encrypted_master_password"
         ]:
-            t.add_row([key, config[key]])
+            t.add_row([key, ctx.bitshares.config[key]])
     click.echo(t)
 
 

@@ -3,10 +3,9 @@ from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.account import Account
 from bitshares.amount import Amount
-from bitshares.storage import configStorage as config
 from bitshares.vesting import Vesting
 from .decorators import online
-from .main import main
+from .main import main, config
 
 
 class Vote:
