@@ -1,46 +1,62 @@
-import os
 import json
-import sys
-from bitshares import BitShares
-from bitshares.account import Account
-from bitshares.amount import Amount
-from bitshares.instance import set_shared_bitshares_instance
-from prettytable import PrettyTable, ALL as allBorders
-from functools import update_wrapper
-import pkg_resources
 import click
 import logging
+import prettytable
+import pkg_resources
+from termcolor import colored
+from bitshares.account import Account
+from bitshares.amount import Amount
 log = logging.getLogger(__name__)
+
+
+def highlight(msg):
+    return colored(msg, "yellow", attrs=['bold'])
+
+
+def detail(msg):
+    return colored(msg, "cyan", attrs=[])
 
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     for app in ["uptick", "bitshares", "graphenelib"]:
-        click.echo('{prog} {version}'.format(
-            prog=pkg_resources.require(app)[0].project_name,
-            version=pkg_resources.require(app)[0].version
+        print_message('{prog:<32} {version}'.format(
+            prog=highlight(pkg_resources.require(app)[0].project_name),
+            version=detail(pkg_resources.require(app)[0].version)
         ))
     ctx.exit()
 
 
 def print_permissions(account):
-    t = PrettyTable(["Permission", "Threshold", "Key/Account"], hrules=allBorders)
-    t.align = "r"
+    t = [["Permission", "Threshold", "Key/Account"]]
     for permission in ["owner", "active"]:
         auths = []
         # account auths:
-        for authority in sorted(account[permission]["account_auths"], key=lambda x: x[1], reverse=True):
-            auths.append("%s (%d)" % (Account(authority[0])["name"], authority[1]))
+        for authority in sorted(
+            account[permission]["account_auths"],
+            key=lambda x: x[1],
+            reverse=True
+        ):
+            auths.append("%s (%d)" % (
+                Account(authority[0])["name"], authority[1]))
         # key auths:
-        for authority in sorted(account[permission]["key_auths"], key=lambda x: x[1], reverse=True):
+        for authority in sorted(
+            account[permission]["key_auths"],
+            key=lambda x: x[1],
+            reverse=True
+        ):
             auths.append("%s (%d)" % (authority[0], authority[1]))
-        t.add_row([
+        t.append([
             permission,
             account[permission]["weight_threshold"],
             "\n".join(auths),
         ])
-    click.echo(t)
+    t.append([
+        "memo", "n/a",
+        account["options"]["memo_key"],
+    ])
+    print_table(t, hrules=True)
 
 
 def get_terminal(text="Password", confirm=False, allowedempty=False):
@@ -48,7 +64,7 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
     while True:
         pw = getpass.getpass(text)
         if not pw and not allowedempty:
-            click.echo("Cannot be empty!")
+            print_message("Cannot be empty!", "error")
             continue
         else:
             if not confirm:
@@ -59,8 +75,31 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
             if (pw == pwck):
                 break
             else:
-                click.echo("Not matching!")
+                print_message("Not matching!", "warning")
     return pw
+
+
+def print_tx(tx):
+    click.echo(tx)
+
+
+def print_table(table, hrules=False, align='l'):
+    if not hrules:
+        hrules = prettytable.FRAME
+    else:
+        hrules = prettytable.ALL
+
+    t = prettytable.PrettyTable(
+        table[0],
+        hrules=hrules)
+    t.align = align
+    for row in table[1:]:
+        t.add_row(row)
+    click.echo(t)
+
+
+def print_message(msg, mode="success"):
+    click.echo(msg)
 
 
 def pprintOperation(op):
@@ -83,8 +122,8 @@ def pprintOperation(op):
         from_account = Account(op["from"])
         to_account = Account(op["to"])
         amount = Amount(op["amount"])
-        return "Transfer from {from_account[name]} to {to_account[name]}: {amount}".format(
-            **locals()
-        )
+        return (
+            "Transfer from {from_account[name]} to {to_account[name]}: {amount}"
+            .format(**locals()))
     else:
         return json.dumps(op, indent=4)

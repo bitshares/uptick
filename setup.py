@@ -37,7 +37,7 @@ setup(
         "prettytable",
         "click",
         "click-datetime",
-        "colorama",
+        "termcolor",
         "tqdm",
         "pyyaml"
     ],

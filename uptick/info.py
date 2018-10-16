@@ -1,7 +1,6 @@
 import re
 import json
 import click
-from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.amount import Amount
 from bitshares.blockchain import Blockchain
@@ -10,9 +9,9 @@ from bitshares.account import Account
 from bitshares.asset import Asset
 from .decorators import (
     onlineChain,
-    unlockWallet
 )
 from .main import main, config
+from .ui import print_table
 
 
 @main.command()
@@ -27,12 +26,11 @@ def info(ctx, objects):
     """ Obtain all kinds of information
     """
     if not objects:
-        t = PrettyTable(["Key", "Value"])
-        t.align = "l"
+        t = [["Key", "Value"]]
         info = ctx.bitshares.rpc.get_dynamic_global_properties()
         for key in info:
-            t.add_row([key, info[key]])
-        click.echo(t.get_string(sortby="Key"))
+            t.append([key, info[key]])
+        print_table(t)
 
     for obj in objects:
         # Block
