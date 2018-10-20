@@ -4,27 +4,56 @@ import logging
 import prettytable
 import pkg_resources
 from termcolor import colored
+from tabulate import tabulate
 from bitshares.account import Account
 from bitshares.amount import Amount
 log = logging.getLogger(__name__)
 
 
+def highlight_tx(tx):
+    from pygments import highlight, lexers, formatters
+    json_raw = json.dumps(tx, sort_keys=True, indent=4)
+    return highlight(
+        bytes(json_raw, 'UTF-8'),
+        lexers.JsonLexer(),
+        formatters.TerminalFormatter()
+    )
+
+def print_tx(tx):
+    click.echo(highlight_tx(tx))
+
+
+def print_message(msg, mode="success"):
+    if mode == "success":
+        click.echo(click.style(str(msg), fg="green"))
+    elif mode == "warning":
+        click.echo(click.style(str(msg), fg="yellow"))
+    elif mode == "error":
+        click.echo(click.style(str(msg), fg="red"))
+    elif mode == "info":
+        click.echo(click.style(str(msg), fg="magenta"))
+    else:
+        raise ValueError
+
+
 def highlight(msg):
-    return colored(msg, "yellow", attrs=['bold'])
+    return click.style(msg, fg="yellow", bold=True)
 
 
 def detail(msg):
-    return colored(msg, "cyan", attrs=[])
+    return click.style(msg, fg="cyan")
 
 
 def print_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
+    t = [["name", "version"]]
     for app in ["uptick", "bitshares", "graphenelib"]:
-        print_message('{prog:<32} {version}'.format(
-            prog=highlight(pkg_resources.require(app)[0].project_name),
-            version=detail(pkg_resources.require(app)[0].version)
-        ))
+        t.append([
+            highlight(pkg_resources.require(app)[0].project_name),
+            detail(pkg_resources.require(app)[0].version)
+        ])
+    print_table(t)
     ctx.exit()
 
 
@@ -79,11 +108,18 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
     return pw
 
 
-def print_tx(tx):
-    click.echo(tx)
-
-
 def print_table(table, hrules=False, align='l'):
+    """
+    if csv:
+        import csv
+        t = csv.writer(sys.stdout, delimiter=";")
+        t.writerow(header)
+    else:
+        t = PrettyTable(header)
+        t.align = "r"
+        t.align["details"] = "l"
+    """
+
     if not hrules:
         hrules = prettytable.FRAME
     else:
@@ -96,10 +132,6 @@ def print_table(table, hrules=False, align='l'):
     for row in table[1:]:
         t.add_row(row)
     click.echo(t)
-
-
-def print_message(msg, mode="success"):
-    click.echo(msg)
 
 
 def pprintOperation(op):
