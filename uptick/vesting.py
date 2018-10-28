@@ -71,6 +71,8 @@ def claim(ctx, vestingid, account, amount):
 @online
 @unlock
 def reserve(ctx, amount, symbol, account):
+    """ Reserve/Burn tokens
+    """
     print_tx(ctx.bitshares.reserve(
         Amount(amount, symbol, bitshares_instance=ctx.bitshares),
         account=account))

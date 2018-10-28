@@ -58,6 +58,8 @@ def disapprovewitness(ctx, witnesses, account):
 @click.pass_context
 @onlineChain
 def witnesses(ctx):
+    """ List witnesses and relevant information
+    """
     t = [[
         "weight",
         "account",

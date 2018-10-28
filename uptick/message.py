@@ -13,6 +13,8 @@ from .ui import (
 @main.group()
 @click.pass_context
 def message(ctx):
+    """ Sub-command to deal with signed messages
+    """
     pass
 
 
