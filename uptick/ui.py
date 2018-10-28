@@ -10,7 +10,7 @@ from bitshares.amount import Amount
 log = logging.getLogger(__name__)
 
 
-def highlight_tx(tx):
+def format_dict(tx):
     from pygments import highlight, lexers, formatters
     json_raw = json.dumps(tx, sort_keys=True, indent=4)
     return highlight(
@@ -19,8 +19,15 @@ def highlight_tx(tx):
         formatters.TerminalFormatter()
     )
 
+def format_tx(tx):
+    return format_dict(tx)
+
 def print_tx(tx):
-    click.echo(highlight_tx(tx))
+    click.echo(format_tx(tx))
+
+
+def print_dict(tx):
+    click.echo(format_dict(tx))
 
 
 def print_message(msg, mode="success"):
@@ -108,7 +115,27 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
     return pw
 
 
-def print_table(table, hrules=False, align='l'):
+def format_table(table, hrules=False, align='l'):
+    if not hrules:
+        hrules = prettytable.FRAME
+    else:
+        hrules = prettytable.ALL
+
+    header = [
+        click.style(x, fg="red", bold=True)
+        for x in table[0]
+    ]
+    t = prettytable.PrettyTable(
+        header,
+        hrules=hrules)
+    t.align = align
+    for index, row in enumerate(table[1:]):
+        row[0] = click.style(row[0], fg="yellow")
+        t.add_row(row)
+
+    return t
+
+def print_table(*args, **kwargs):
     """
     if csv:
         import csv
@@ -119,18 +146,7 @@ def print_table(table, hrules=False, align='l'):
         t.align = "r"
         t.align["details"] = "l"
     """
-
-    if not hrules:
-        hrules = prettytable.FRAME
-    else:
-        hrules = prettytable.ALL
-
-    t = prettytable.PrettyTable(
-        table[0],
-        hrules=hrules)
-    t.align = align
-    for row in table[1:]:
-        t.add_row(row)
+    t = format_table(*args, **kwargs)
     click.echo(t)
 
 
@@ -146,6 +162,8 @@ def pprintOperation(op):
         return "New account created for {}".format(op["name"])
     elif id == 2:
         return "Canceled order %s" % op["order"]
+    elif id == 6:
+        return "Account {} updated".format(Account(op["account"])["name"])
     elif id == 33:
         return "Claiming from vesting: %s" % str(Amount(op["amount"]))
     elif id == 15:
@@ -158,4 +176,4 @@ def pprintOperation(op):
             "Transfer from {from_account[name]} to {to_account[name]}: {amount}"
             .format(**locals()))
     else:
-        return json.dumps(op, indent=4)
+        return format_dict(op)

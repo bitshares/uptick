@@ -14,7 +14,7 @@ from .main import main, config
 from .ui import (
     print_table,
     print_message,
-    highlight_tx,
+    format_tx,
     highlight,
     detail,
 )
@@ -46,7 +46,7 @@ def info(ctx, objects):
             for key in sorted(block):
                 value = block[key]
                 if key == "transactions":
-                    value = highlight_tx(value)
+                    value = format_tx(value)
                 t.append([key, value])
             print_table(t)
         # Object Id
@@ -57,7 +57,7 @@ def info(ctx, objects):
                 for key in sorted(data):
                     value = data[key]
                     if isinstance(value, dict) or isinstance(value, list):
-                        value = highlight_tx(value)
+                        value = format_tx(value)
                     t.append([key, value])
                 print_table(t)
             else:
@@ -70,7 +70,7 @@ def info(ctx, objects):
             for key in sorted(data):
                 value = data[key]
                 if isinstance(value, dict):
-                    value = highlight_tx(value)
+                    value = format_tx(value)
                 t.append([key, value])
             print_table(t)
 
@@ -92,7 +92,7 @@ def info(ctx, objects):
                 for key in sorted(account):
                     value = account[key]
                     if isinstance(value, dict) or isinstance(value, list):
-                        value = highlight_tx(value)
+                        value = format_tx(value)
                     t.append([key, value])
                 print_table(t)
             else:
@@ -105,7 +105,7 @@ def info(ctx, objects):
                 for key in sorted(vote):
                     value = vote[key]
                     if isinstance(value, dict) or isinstance(value, list):
-                        value = highlight_tx(value)
+                        value = format_tx(value)
                     t.append([key, value])
                 print_table(t)
             else:

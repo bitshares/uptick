@@ -1,12 +1,15 @@
 import click
 from bitshares.account import Account
-from prettytable import PrettyTable
 from .decorators import (
     onlineChain,
     offlineChain,
     unlockWallet
 )
 from .main import main, config
+from .ui import (
+    print_table,
+    print_message
+)
 
 
 @main.command()
@@ -130,11 +133,10 @@ def getkey(ctx, pubkey):
 def listkeys(ctx):
     """ List all keys (for all networks)
     """
-    t = PrettyTable(["Available Key"])
-    t.align = "l"
+    t = [["Available Key"]]
     for key in ctx.bitshares.wallet.getPublicKeys():
-        t.add_row([key])
-    click.echo(t)
+        t.append([key])
+    print_table(t)
 
 
 @main.command()
@@ -143,15 +145,14 @@ def listkeys(ctx):
 def listaccounts(ctx):
     """ List accounts (for the connected network)
     """
-    t = PrettyTable(["Name", "Type", "Available Key"])
-    t.align = "l"
+    t = [["Name", "Type", "Available Key"]]
     for account in ctx.bitshares.wallet.getAccounts():
-        t.add_row([
+        t.append([
             account["name"] or "n/a",
             account["type"] or "n/a",
             account["pubkey"]
         ])
-    click.echo(t)
+    print_table(t)
 
 
 @main.command()
@@ -183,7 +184,7 @@ def importaccount(ctx, account, role):
         owner_key = PasswordKey(account["name"], password, role="owner")
         owner_pubkey = format(owner_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
         if owner_pubkey in [x[0] for x in account["owner"]["key_auths"]]:
-            click.echo("Importing owner key!")
+            print_message("Importing owner key!")
             owner_privkey = owner_key.get_private_key()
             ctx.bitshares.wallet.addPrivateKey(owner_privkey)
             imported = True
@@ -192,7 +193,7 @@ def importaccount(ctx, account, role):
         active_key = PasswordKey(account["name"], password, role="active")
         active_pubkey = format(active_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
         if active_pubkey in [x[0] for x in account["active"]["key_auths"]]:
-            click.echo("Importing active key!")
+            print_message("Importing active key!")
             active_privkey = active_key.get_private_key()
             ctx.bitshares.wallet.addPrivateKey(active_privkey)
             imported = True
@@ -201,13 +202,13 @@ def importaccount(ctx, account, role):
         memo_key = PasswordKey(account["name"], password, role=role)
         memo_pubkey = format(memo_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
         if memo_pubkey == account["memo_key"]:
-            click.echo("Importing memo key!")
+            print_message("Importing memo key!")
             memo_privkey = memo_key.get_private_key()
             ctx.bitshares.wallet.addPrivateKey(memo_privkey)
             imported = True
 
     if not imported:
-        click.echo("No matching key(s) found. Password correct?")
+        print_message("No matching key(s) found. Password correct?", "error")
 
 
 @main.command()
