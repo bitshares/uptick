@@ -1,7 +1,6 @@
 import sys
 import json
 import click
-from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.block import Block, BlockHeader
 from bitshares.account import Account
@@ -12,6 +11,8 @@ from .decorators import (
 from .ui import (
     print_permissions,
     pprintOperation,
+    print_table,
+    print_tx
 )
 from .main import main, config
 
@@ -60,7 +61,7 @@ def allow(ctx, foreign_account, permission, weight, threshold, account):
             PasswordKey(account, pwd, permission).get_public(),
             "BTS"
         )
-    pprint(ctx.bitshares.allow(
+    print_tx(ctx.bitshares.allow(
         foreign_account,
         weight=weight,
         account=account,
@@ -93,7 +94,7 @@ def allow(ctx, foreign_account, permission, weight, threshold, account):
 def disallow(ctx, foreign_account, permission, threshold, account):
     """ Remove a key/account from an account's permission
     """
-    pprint(ctx.bitshares.disallow(
+    print_tx(ctx.bitshares.disallow(
         foreign_account,
         account=account,
         permission=permission,
@@ -131,15 +132,7 @@ def history(ctx, account, limit, type, csv, exclude, raw):
     """ Show history of an account
     """
     from bitsharesbase.operations import getOperationNameForId
-    header = ["#", "time (block)", "operation", "details"]
-    if csv:
-        import csv
-        t = csv.writer(sys.stdout, delimiter=";")
-        t.writerow(header)
-    else:
-        t = PrettyTable(header)
-        t.align = "r"
-        t.align["details"] = "l"
+    t = [["#", "time (block)", "operation", "details"]]
 
     for a in account:
         account = Account(a, bitshares_instance=ctx.bitshares)
@@ -155,12 +148,8 @@ def history(ctx, account, limit, type, csv, exclude, raw):
                 "{} ({})".format(getOperationNameForId(b["op"][0]), b["op"][0]),
                 pprintOperation(b) if not raw else json.dumps(b, indent=4),
             ]
-            if csv:
-                t.writerow(row)
-            else:
-                t.add_row(row)
-    if not csv:
-        click.echo(t)
+            t.append(row)
+    print_table(t)
 
 
 @main.command()
@@ -192,7 +181,7 @@ def history(ctx, account, limit, type, csv, exclude, raw):
 def transfer(ctx, to, amount, asset, memo, account):
     """ Transfer assets
     """
-    pprint(ctx.bitshares.transfer(
+    print_tx(ctx.bitshares.transfer(
         to,
         amount,
         asset,
@@ -210,16 +199,15 @@ def transfer(ctx, to, amount, asset, memo, account):
 def balance(ctx, accounts):
     """ Show Account balances
     """
-    t = PrettyTable(["Account", "Amount"])
-    t.align = "r"
+    t = [["Account", "Amount"]]
     for a in accounts:
         account = Account(a, bitshares_instance=ctx.bitshares)
         for b in account.balances:
-            t.add_row([
+            t.append([
                 str(a),
                 str(b),
             ])
-    click.echo(str(t))
+    print_table(t)
 
 
 @main.command()
@@ -257,7 +245,7 @@ def permissions(ctx, account):
 def newaccount(ctx, accountname, account, password):
     """ Create a new account
     """
-    pprint(ctx.bitshares.create_account(
+    print_tx(ctx.bitshares.create_account(
         accountname,
         registrar=account,
         password=password,
@@ -276,7 +264,7 @@ def newaccount(ctx, accountname, account, password):
 def upgrade(ctx, account):
     """ Upgrade account
     """
-    pprint(ctx.bitshares.upgrade_account(account))
+    print_tx(ctx.bitshares.upgrade_account(account))
 
 
 @main.command()
@@ -314,7 +302,7 @@ def cloneaccount(ctx, account_name, account):
         "prefix": ctx.bitshares.rpc.chain_params["prefix"]
     }
     op = operations.Account_create(**op)
-    pprint(ctx.bitshares.finalizeOp(op, account, "active"))
+    print_tx(ctx.bitshares.finalizeOp(op, account, "active"))
 
 
 @main.command()
@@ -334,7 +322,7 @@ def cloneaccount(ctx, account_name, account):
 def changememokey(ctx, key, account):
     """ Change the memo key of an account
     """
-    pprint(ctx.bitshares.update_memo_key(
+    print_tx(ctx.bitshares.update_memo_key(
         key,
         account=account,
     ))
@@ -357,7 +345,7 @@ def whitelist(ctx, whitelist_account, account):
     """ Add an account to a whitelist
     """
     account = Account(account, blockchain_instance=ctx.blockchain)
-    pprint(account.whitelist(whitelist_account))
+    print_tx(account.whitelist(whitelist_account))
 
 
 @main.command()
@@ -377,7 +365,7 @@ def blacklist(ctx, blacklist_account, account):
     """ Add an account to a blacklist
     """
     account = Account(account, blockchain_instance=ctx.blockchain)
-    pprint(account.blacklist(blacklist_account))
+    print_tx(account.blacklist(blacklist_account))
 
 
 @main.command()
@@ -397,7 +385,7 @@ def unlist(ctx, unlist_account, account):
     """ Remove an account from any list
     """
     account = Account(account, blockchain_instance=ctx.blockchain)
-    pprint(account.nolist(unlist_account))
+    print_tx(account.nolist(unlist_account))
 
 
 @main.command()
@@ -415,7 +403,7 @@ def unlist(ctx, unlist_account, account):
 def setproxy(ctx, proxy_account, account):
     """ Set the proxy account for an account
     """
-    pprint(ctx.bitshares.set_proxy(
+    print_tx(ctx.bitshares.set_proxy(
         proxy_account,
         account=account
     ))
@@ -433,6 +421,6 @@ def setproxy(ctx, proxy_account, account):
 def unsetproxy(ctx, account):
     """ Clear proxy for an account
     """
-    pprint(ctx.bitshares.unset_proxy(
+    print_tx(ctx.bitshares.unset_proxy(
         account=account
     ))

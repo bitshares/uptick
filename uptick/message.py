@@ -1,10 +1,13 @@
 import click
-from bitshares.message import Message
+from bitshares.message import Message, InvalidMessageSignature
 from .decorators import (
     onlineChain,
     unlockWallet,
 )
 from .main import main, config
+from .ui import (
+    print_message
+)
 
 
 @main.group()
@@ -31,10 +34,12 @@ def sign(ctx, file, account):
     """ Sign a message with an account
     """
     if not file:
-        click.echo("Prompting for message. Terminate with CTRL-D")
+        print_message(
+            "Prompting for message. Terminate with CTRL-D",
+            "info")
         file = click.get_text_stream('stdin')
     m = Message(file.read(), bitshares_instance=ctx.bitshares)
-    click.echo(m.sign(account))
+    print_message(m.sign(account), "info")
 
 
 @message.command()
@@ -54,7 +59,16 @@ def verify(ctx, file, account):
     """ Verify a signed message
     """
     if not file:
-        click.echo("Prompting for message. Terminate with CTRL-D")
+        print_message(
+            "Prompting for message. Terminate with CTRL-D",
+            "info",
+        )
         file = click.get_text_stream('stdin')
     m = Message(file.read(), bitshares_instance=ctx.bitshares)
-    click.echo("Verified" if m.verify() else "not verified")
+    try:
+        if m.verify():
+            print_message("Verified", "success")
+        else:
+            print_message("not verified", "error")
+    except InvalidMessageSignature:
+        print_message("Signature INVALID!", "error")

@@ -1,8 +1,10 @@
 import click
-from pprint import pprint
 from .decorators import (
     onlineChain,
     unlockWallet,
+)
+from .ui import (
+    print_tx
 )
 from .main import main, config
 
@@ -22,7 +24,7 @@ from .main import main, config
 def approvecommittee(ctx, members, account):
     """ Approve committee member(s)
     """
-    pprint(ctx.bitshares.approvecommittee(
+    print_tx(ctx.bitshares.approvecommittee(
         members,
         account=account
     ))
@@ -43,7 +45,7 @@ def approvecommittee(ctx, members, account):
 def disapprovecommittee(ctx, members, account):
     """ Disapprove committee member(s)
     """
-    pprint(ctx.bitshares.disapprovecommittee(
+    print_tx(ctx.bitshares.disapprovecommittee(
         members,
         account=account
     ))
@@ -62,7 +64,7 @@ def disapprovecommittee(ctx, members, account):
 def createcommittee(ctx, url, account):
     """ Setup a committee account for your account
     """
-    pprint(ctx.bitshares.create_committee_member(
+    print_tx(ctx.bitshares.create_committee_member(
         url,
         account=account
     ))

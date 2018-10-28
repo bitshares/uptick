@@ -37,9 +37,10 @@ setup(
         "prettytable",
         "click",
         "click-datetime",
-        "colorama",
+        "termcolor",
         "tqdm",
-        "pyyaml"
+        "pyyaml",
+        "pygments"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

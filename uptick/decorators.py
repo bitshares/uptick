@@ -1,11 +1,14 @@
-import yaml
 import os
+import yaml
+import click
+import logging
 from bitshares import BitShares
 from bitshares.exceptions import WrongMasterPasswordException
 from bitshares.instance import set_shared_bitshares_instance
 from functools import update_wrapper
-import click
-import logging
+from .ui import (
+    print_message
+)
 log = logging.getLogger(__name__)
 
 
@@ -124,11 +127,17 @@ def unlock(f):
                     try:
                         ctx.bitshares.wallet.unlock(pwd)
                     except WrongMasterPasswordException:
-                        click.echo("Incorrect Wallet passphrase!")
+                        print_message(
+                            "Incorrect Wallet passphrase!",
+                            "error"
+                        )
                         continue
                     break
             else:
-                click.echo("No wallet installed yet. Creating ...")
+                print_message(
+                    "No wallet installed yet. Creating ...",
+                    "warning"
+                )
                 pwd = click.prompt(
                     "Wallet Encryption Passphrase",
                     hide_input=True,

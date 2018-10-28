@@ -1,6 +1,4 @@
 import click
-from pprint import pprint
-from prettytable import PrettyTable
 from click_datetime import Datetime
 from datetime import datetime, timedelta
 from bitshares.market import Market
@@ -12,6 +10,11 @@ from .decorators import (
     unlockWallet,
     online,
     unlock
+)
+from .ui import (
+    print_tx,
+    print_table,
+    format_table,
 )
 from .main import main, config
 
@@ -40,10 +43,9 @@ def trades(ctx, market, limit, start, stop):
     """ List trades in a market
     """
     market = Market(market, bitshares_instance=ctx.bitshares)
-    t = PrettyTable(["time", "quote", "base", "price"])
-    t.align = 'r'
+    t = [["time", "quote", "base", "price"]]
     for trade in market.trades(limit, start=start, stop=stop):
-        t.add_row([
+        t.append([
             str(trade["time"]),
             str(trade["quote"]),
             str(trade["base"]),
@@ -52,7 +54,7 @@ def trades(ctx, market, limit, start, stop):
                 trade["base"]["asset"]["symbol"],
                 trade["quote"]["asset"]["symbol"]),
         ])
-    click.echo(str(t))
+    print_table(t)
 
 
 @main.command()
@@ -66,11 +68,10 @@ def ticker(ctx, market):
     """
     market = Market(market, bitshares_instance=ctx.bitshares)
     ticker = market.ticker()
-    t = PrettyTable(["key", "value"])
-    t.align = 'r'
+    t = [["key", "value"]]
     for key in ticker:
-        t.add_row([key, str(ticker[key])])
-    click.echo(str(t))
+        t.append([key, str(ticker[key])])
+    print_table(t)
 
 
 @main.command()
@@ -91,7 +92,7 @@ def ticker(ctx, market):
 def cancel(ctx, orders, account):
     """ Cancel one or multiple orders
     """
-    pprint(ctx.bitshares.cancel(orders, account=account))
+    print_tx(ctx.bitshares.cancel(orders, account=account))
 
 
 @main.command()
@@ -106,20 +107,19 @@ def orderbook(ctx, market):
     market = Market(market, bitshares_instance=ctx.bitshares)
     orderbook = market.orderbook()
     ta = {}
-    ta["bids"] = PrettyTable([
+    ta["bids"] = [[
         "quote",
         "sum quote",
         "base",
         "sum base",
         "price"
-    ])
-    ta["bids"].align = "r"
+    ]]
     cumsumquote = Amount(0, market["quote"])
     cumsumbase = Amount(0, market["base"])
     for order in orderbook["bids"]:
         cumsumbase += order["base"]
         cumsumquote += order["quote"]
-        ta["bids"].add_row([
+        ta["bids"].append([
             str(order["quote"]),
             str(cumsumquote),
             str(order["base"]),
@@ -130,21 +130,19 @@ def orderbook(ctx, market):
                 order["quote"]["asset"]["symbol"]),
         ])
 
-    ta["asks"] = PrettyTable([
+    ta["asks"] = [[
         "price",
         "base",
         "sum base",
         "quote",
         "sum quote",
-    ])
-    ta["asks"].align = "r"
-    ta["asks"].align["price"] = "l"
+    ]]
     cumsumquote = Amount(0, market["quote"])
     cumsumbase = Amount(0, market["base"])
     for order in orderbook["asks"]:
         cumsumbase += order["base"]
         cumsumquote += order["quote"]
-        ta["asks"].add_row([
+        ta["asks"].append([
             "{:f} {}/{}".format(
                 order["price"],
                 order["base"]["asset"]["symbol"],
@@ -154,9 +152,12 @@ def orderbook(ctx, market):
             str(order["quote"]),
             str(cumsumquote),
         ])
-    t = PrettyTable(["bids", "asks"])
-    t.add_row([str(ta["bids"]), str(ta["asks"])])
-    click.echo(t)
+    t = [["bids", "asks"]]
+    t.append([
+        format_table(ta["bids"]),
+        format_table(ta["asks"])
+    ])
+    print_table(t)
 
 
 @main.command()
@@ -192,7 +193,7 @@ def buy(ctx, buy_amount, buy_asset, price, sell_asset, order_expiration, account
         quote=buy_asset,
         bitshares_instance=ctx.bitshares
     )
-    pprint(price.market.buy(
+    print_tx(price.market.buy(
         price,
         amount,
         account=account,
@@ -232,7 +233,7 @@ def sell(ctx, sell_amount, sell_asset, price, buy_asset, order_expiration, accou
         base=buy_asset,
         bitshares_instance=ctx.bitshares
     )
-    pprint(price.market.sell(
+    print_tx(price.market.sell(
         price,
         amount,
         account=account,
@@ -253,15 +254,14 @@ def openorders(ctx, account):
         account or config["default_account"],
         bitshares_instance=ctx.bitshares
     )
-    t = PrettyTable([
+    t = [[
         "Price",
         "Quote",
         "Base",
         "ID"
-    ])
-    t.align = "r"
+    ]]
     for o in account.openorders:
-        t.add_row([
+        t.append([
             "{:f} {}/{}".format(
                 o["price"],
                 o["base"]["asset"]["symbol"],
@@ -269,7 +269,7 @@ def openorders(ctx, account):
             str(o["quote"]),
             str(o["base"]),
             o["id"]])
-    click.echo(t)
+    print_table(t)
 
 
 @main.command()
@@ -286,7 +286,7 @@ def cancelall(ctx, market, account):
     market.cancel([
         x["id"] for x in market.accountopenorders(account)
     ], account=account)
-    pprint(ctx.bitshares.txbuffer.broadcast())
+    print_tx(ctx.bitshares.txbuffer.broadcast())
 
 
 @main.command()
@@ -327,7 +327,7 @@ def spread(ctx, market, side, min, max, num, total, order_expiration, account):
     func = getattr(market, side)
     for p in tqdm(space):
         func(p, total / float(num), account=account, expiration=order_expiration)
-    pprint(ctx.bitshares.txbuffer.broadcast())
+    print_tx(ctx.bitshares.txbuffer.broadcast())
 
 
 @main.command()
@@ -357,7 +357,7 @@ def borrow(ctx, amount, symbol, ratio, account):
     """
     from bitshares.dex import Dex
     dex = Dex(bitshares_instance=ctx.bitshares)
-    pprint(dex.borrow(
+    print_tx(dex.borrow(
         Amount(amount, symbol),
         collateral_ratio=ratio,
         account=account
@@ -387,7 +387,7 @@ def updateratio(ctx, symbol, ratio, account):
     """
     from bitshares.dex import Dex
     dex = Dex(bitshares_instance=ctx.bitshares)
-    pprint(dex.adjust_collateral_ratio(
+    print_tx(dex.adjust_collateral_ratio(
         symbol,
         ratio,
         account=account
@@ -415,4 +415,4 @@ def updateratio(ctx, symbol, ratio, account):
 def fundfeepool(ctx, symbol, amount, account):
     """ Fund the fee pool of an asset
     """
-    pprint(ctx.bitshares.fund_fee_pool(symbol, amount, account=account))
+    print_tx(ctx.bitshares.fund_fee_pool(symbol, amount, account=account))

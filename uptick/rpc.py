@@ -4,6 +4,9 @@ from .decorators import (
     onlineChain,
 )
 from .main import main
+from .ui import (
+    print_dict,
+)
 
 
 @main.command()
@@ -37,4 +40,4 @@ def rpc(ctx, call, arguments, api):
     except:
         data = arguments
     ret = getattr(ctx.bitshares.rpc, call)(*data, api=api)
-    pprint(ret)
+    print_dict(ret)

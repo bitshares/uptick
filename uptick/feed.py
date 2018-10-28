@@ -13,6 +13,9 @@ from .decorators import (
     unlockWallet
 )
 from .main import main, config
+from .ui import (
+    print_tx
+)
 
 
 @main.command()
@@ -83,7 +86,7 @@ def newfeed(
             bitshares_instance=ctx.bitshares
         )
 
-    pprint(ctx.bitshares.publish_price_feed(
+    print_tx(ctx.bitshares.publish_price_feed(
         symbol,
         Price(price, market),
         cer=cer,
