@@ -1,10 +1,8 @@
 import sys
 import click
-from pprint import pprint
 from prettytable import PrettyTable
 from click_datetime import Datetime
 from datetime import datetime, timedelta
-from bitshares.storage import configStorage as config
 from bitshares.market import Market
 from bitshares.amount import Amount
 from bitshares.account import Account
@@ -15,7 +13,11 @@ from .decorators import (
     online,
     unlock
 )
-from .main import main
+from .main import main, config
+from .ui import (
+    print_table,
+    print_message
+)
 
 
 @main.command()
@@ -35,32 +37,32 @@ def calls(ctx, obj):
         from bitshares.asset import Asset
         asset = Asset(obj, full=True)
         calls = asset.get_call_orders(10)
-        t = PrettyTable(["acount", "debt", "collateral", "call price", "ratio"])
-        t.align = 'r'
+        t = [[
+            "acount", "debt",
+            "collateral", "call price", "ratio"]]
         for call in calls:
-            t.add_row([
+            t.append([
                 str(call["account"]["name"]),
                 str(call["debt"]),
                 str(call["collateral"]),
                 str(call["call_price"]),
                 "%.2f" % (call["ratio"])
             ])
-        click.echo(str(t))
+        print_table(t)
     else:
         # Account
         from bitshares.dex import Dex
         dex = Dex(bitshares_instance=ctx.bitshares)
         calls = dex.list_debt_positions(account=obj)
-        t = PrettyTable(["debt", "collateral", "call price", "ratio"])
-        t.align = 'r'
+        t = [["debt", "collateral", "call price", "ratio"]]
         for symbol in calls:
-            t.add_row([
+            t.append([
                 str(calls[symbol]["debt"]),
                 str(calls[symbol]["collateral"]),
                 str(calls[symbol]["call_price"]),
                 "%.2f" % (calls[symbol]["ratio"])
             ])
-        click.echo(str(t))
+        print_table(t)
 
 
 @main.command()
@@ -76,15 +78,17 @@ def settlements(ctx, asset):
     from bitshares.asset import Asset
     asset = Asset(asset, full=True)
     if not asset.is_bitasset:
-        click.echo("{} is not a bitasset.".format(asset["symbol"]))
+        print_message(
+            "{} is not a bitasset.".format(asset["symbol"]),
+            "warning"
+        )
         sys.exit(1)
     calls = asset.get_settle_orders(10)
-    t = PrettyTable(["acount", "amount", "date"])
-    t.align = 'r'
+    t = [["acount", "amount", "date"]]
     for call in calls:
-        t.add_row([
+        t.append([
             str(call["account"]["name"]),
             str(call["amount"]),
             str(call["date"]),
         ])
-    click.echo(str(t))
+    print_table(t)

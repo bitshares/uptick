@@ -1,13 +1,15 @@
 import click
 from prettytable import PrettyTable
 from bitshares.witness import Witnesses
-from bitshares.storage import configStorage as config
-from pprint import pprint
 from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
+from .ui import (
+    print_tx,
+    print_table
+)
 
 
 @main.command()
@@ -25,7 +27,7 @@ from .main import main
 def approvewitness(ctx, witnesses, account):
     """ Approve witness(es)
     """
-    pprint(ctx.bitshares.approvewitness(
+    print_tx(ctx.bitshares.approvewitness(
         witnesses,
         account=account
     ))
@@ -46,7 +48,7 @@ def approvewitness(ctx, witnesses, account):
 def disapprovewitness(ctx, witnesses, account):
     """ Disapprove witness(es)
     """
-    pprint(ctx.bitshares.disapprovewitness(
+    print_tx(ctx.bitshares.disapprovewitness(
         witnesses,
         account=account
     ))
@@ -56,7 +58,9 @@ def disapprovewitness(ctx, witnesses, account):
 @click.pass_context
 @onlineChain
 def witnesses(ctx):
-    t = PrettyTable([
+    """ List witnesses and relevant information
+    """
+    t = [[
         "weight",
         "account",
         "signing_key",
@@ -64,15 +68,14 @@ def witnesses(ctx):
         "url",
         "total_missed",
         "last_confirmed_block_num"
-    ])
-    t.align = 'l'
+    ]]
     for witness in sorted(
         Witnesses(),
         key=lambda x: x.weight,
         reverse=True
     ):
         witness.refresh()
-        t.add_row([
+        t.append([
             "{:.2f}%".format(witness.weight * 100),
             witness.account["name"],
             witness["signing_key"],
@@ -81,4 +84,4 @@ def witnesses(ctx):
             witness["total_missed"],
             witness["last_confirmed_block_num"]
         ])
-    click.echo(t)
+    print_table(t)

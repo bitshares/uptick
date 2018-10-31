@@ -4,20 +4,17 @@ import yaml
 import sys
 import json
 import click
-from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.account import Account
-from bitshares.storage import configStorage as config
 from .decorators import (
     onlineChain,
     unlockWallet,
     configfile
 )
+from .main import main, config
 from .ui import (
-    print_permissions,
-    pprintOperation,
+    print_message
 )
-from .main import main
 
 
 @main.group()
@@ -47,7 +44,7 @@ def create(ctx):
         default_config_file,
         config_file
     )
-    click.echo("Config file created: %s" % config_file)
+    print_message("Config file created: {}".format(config_file))
 
 
 @api.command()
@@ -62,7 +59,7 @@ def start(ctx):
         from .apis import poloniex
         poloniex.run(ctx, port=5000)
     else:
-        click.echo("Unkown 'api'!")
+        print_message("Unkown 'api'!", "error")
 
 
 @api.command()
@@ -77,6 +74,7 @@ def apipassword(password):
     """ Generate a SHA256 hash of the password for the YAML
         configuration
     """
-    click.echo(
-        hashlib.sha256(bytes(password, "utf-8")).hexdigest()
+    print_message(
+        hashlib.sha256(bytes(password, "utf-8")).hexdigest(),
+        "info"
     )

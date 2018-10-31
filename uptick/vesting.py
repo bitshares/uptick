@@ -1,5 +1,4 @@
 import click
-from pprint import pprint
 from prettytable import PrettyTable
 from bitshares.amount import Amount
 from bitshares.account import Account
@@ -12,6 +11,10 @@ from .decorators import (
     unlock
 )
 from .main import main
+from .ui import (
+    print_tx,
+    print_table,
+)
 
 
 @main.command()
@@ -22,15 +25,14 @@ def vesting(ctx, account):
     """ List accounts vesting balances
     """
     account = Account(account, full=True)
-    t = PrettyTable(["vesting_id", "claimable"])
-    t.align = 'r'
+    t = [["vesting_id", "claimable"]]
     for vest in account["vesting_balances"]:
         vesting = Vesting(vest)
-        t.add_row([
+        t.append([
             vesting["id"],
             str(vesting.claimable)
         ])
-    click.echo(str(t))
+    print_table(t)
 
 
 @main.command()
@@ -48,7 +50,7 @@ def claim(ctx, vestingid, account, amount):
         amount = Amount(float(amount), "BTS")
     else:
         amount = vesting.claimable
-    pprint(ctx.bitshares.vesting_balance_withdraw(
+    print_tx(ctx.bitshares.vesting_balance_withdraw(
         vesting["id"],
         amount=amount,
         account=vesting["owner"]
@@ -69,6 +71,8 @@ def claim(ctx, vestingid, account, amount):
 @online
 @unlock
 def reserve(ctx, amount, symbol, account):
-    pprint(ctx.bitshares.reserve(
+    """ Reserve/Burn tokens
+    """
+    print_tx(ctx.bitshares.reserve(
         Amount(amount, symbol, bitshares_instance=ctx.bitshares),
         account=account))

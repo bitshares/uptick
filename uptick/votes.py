@@ -1,12 +1,10 @@
 import click
-from pprint import pprint
-from prettytable import PrettyTable
 from bitshares.account import Account
 from bitshares.amount import Amount
-from bitshares.storage import configStorage as config
 from bitshares.vesting import Vesting
 from .decorators import online
-from .main import main
+from .main import main, config
+from .ui import print_table
 
 
 class Vote:
@@ -54,20 +52,18 @@ def votes(ctx, account, type):
         t = Vote.vote_type_from_id(vote["id"])
         ret[t].append(vote)
 
-    t = PrettyTable(["id", "url", "account"])
-    t.align = 'l'
+    t = [["id", "url", "account"]]
     for vote in ret["committee"]:
-        t.add_row([
+        t.append([
             vote["id"],
             vote["url"],
             Account(vote["committee_member_account"])["name"]
         ])
 
     if "committee" in type:
-        t = PrettyTable(["id", "url", "account", "votes"])
-        t.align = 'l'
+        t = [["id", "url", "account", "votes"]]
         for vote in ret["committee"]:
-            t.add_row([
+            t.append([
                 vote["id"],
                 vote["url"],
                 Account(vote["committee_member_account"])["name"],
@@ -75,13 +71,15 @@ def votes(ctx, account, type):
                     "amount": vote["total_votes"],
                     "asset_id": "1.3.0"}))
             ])
-        click.echo(str(t))
+        print_table(t)
 
     if "witness" in type:
-        t = PrettyTable(["id", "account", "url", "votes", "last_confirmed_block_num", "total_missed", "westing"])
-        t.align = 'l'
+        t = [[
+            "id", "account", "url", "votes",
+            "last_confirmed_block_num", "total_missed",
+            "westing"]]
         for vote in ret["witness"]:
-            t.add_row([
+            t.append([
                 vote["id"],
                 Account(vote["witness_account"])["name"],
                 vote["url"],
@@ -92,18 +90,17 @@ def votes(ctx, account, type):
                 vote["total_missed"],
                 str(Vesting(vote.get("pay_vb")).claimable) if vote.get("pay_vb") else ""
             ])
-        click.echo(str(t))
+        print_table(t)
 
     if "worker" in type:
-        t = PrettyTable([
+        t = [[
             "id",
             "name/url",
             "daily_pay",
             "votes",
             "time",
             "account",
-        ])
-        t.align = 'l'
+        ]]
         for vote in ret["worker"]:
             votes = Amount({
                 "amount": vote["total_votes_for"],
@@ -111,7 +108,7 @@ def votes(ctx, account, type):
             amount = Amount({
                 "amount": vote["daily_pay"],
                 "asset_id": "1.3.0"})
-            t.add_row([
+            t.append([
                 vote["id"],
                 "{name}\n{url}".format(**vote),
                 str(amount),
@@ -119,4 +116,4 @@ def votes(ctx, account, type):
                 "{work_begin_date}\n-\n{work_end_date}".format(**vote),
                 str(Account(vote["worker_account"])["name"]),
             ])
-        click.echo(str(t))
+        print_table(t)

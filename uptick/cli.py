@@ -4,14 +4,11 @@ import sys
 import json
 import click
 import logging
-from pprint import pprint
-from bitshares.storage import configStorage as config
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
 from .ui import (
     print_permissions,
     get_terminal,
-    pprintOperation,
     print_version,
 )
 from .decorators import (
@@ -37,6 +34,11 @@ from . import (
     rpc,
     votes
 )
+from .ui import (
+    print_message,
+    print_table,
+    print_tx
+)
 log = logging.getLogger(__name__)
 
 
@@ -57,21 +59,19 @@ def set(ctx, key, value):
     if (key == "default_account" and
             value[0] == "@"):
         value = value[1:]
-    config[key] = value
+    ctx.bitshares.config[key] = value
 
 
 @main.command()
-def configuration():
+@click.pass_context
+@offlineChain
+def configuration(ctx):
     """ Show configuration variables
     """
-    t = PrettyTable(["Key", "Value"])
-    t.align = "l"
-    for key in config:
-        if key not in [
-            "encrypted_master_password"
-        ]:
-            t.add_row([key, config[key]])
-    click.echo(t)
+    t = [["Key", "Value"]]
+    for key in ctx.bitshares.config:
+        t.append([key, ctx.bitshares.config[key]])
+    print_table(t)
 
 
 @main.command()
@@ -92,7 +92,7 @@ def sign(ctx, filename):
     tx = TransactionBuilder(eval(tx), bitshares_instance=ctx.bitshares)
     tx.appendMissingSignatures()
     tx.sign()
-    pprint(tx.json())
+    print_tx(tx.json())
 
 
 @main.command()
@@ -111,7 +111,7 @@ def broadcast(ctx, filename):
         tx = sys.stdin.read()
     tx = TransactionBuilder(eval(tx), bitshares_instance=ctx.bitshares)
     tx.broadcast()
-    pprint(tx.json())
+    print_tx(tx.json())
 
 
 @main.command()
@@ -131,14 +131,14 @@ def randomwif(prefix, num):
     """ Obtain a random private/public key pair
     """
     from bitsharesbase.account import PrivateKey
-    t = PrettyTable(["wif", "pubkey"])
+    t = [["wif", "pubkey"]]
     for n in range(0, num):
         wif = PrivateKey()
-        t.add_row([
+        t.append([
             str(wif),
             format(wif.pubkey, prefix)
         ])
-    click.echo(str(t))
+    print_table(t)
 
 
 if __name__ == '__main__':

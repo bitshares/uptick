@@ -1,17 +1,18 @@
 import json
 import click
 import datetime
-from prettytable import PrettyTable
-from bitshares.storage import configStorage as config
 from bitshares.worker import Workers
 from bitshares.account import Account
 from bitshares.amount import Amount
-from pprint import pprint
 from .decorators import (
     onlineChain,
     unlockWallet
 )
-from .main import main
+from .main import main, config
+from .ui import (
+    print_table,
+    print_tx
+)
 
 
 @main.command()
@@ -29,7 +30,7 @@ from .main import main
 def approveworker(ctx, workers, account):
     """ Approve worker(es)
     """
-    pprint(ctx.bitshares.approveworker(
+    print_tx(ctx.bitshares.approveworker(
         workers,
         account=account
     ))
@@ -50,7 +51,7 @@ def approveworker(ctx, workers, account):
 def disapproveworker(ctx, workers, account):
     """ Disapprove worker(es)
     """
-    pprint(ctx.bitshares.disapproveworker(
+    print_tx(ctx.bitshares.disapproveworker(
         workers,
         account=account
     ))
@@ -68,16 +69,14 @@ def workers(ctx, account):
     """ List all workers (of an account)
     """
     workers = Workers(account)
-    t = PrettyTable([
+    t = [[
         "id",
         "name/url",
         "daily_pay",
         "votes",
         "time",
         "account",
-    ])
-    t.align["name/url"] = "l"
-    t.align["account"] = "l"
+    ]]
     for worker in workers:
         if worker["work_end_date"] < datetime.datetime.utcnow():
             continue
@@ -87,7 +86,7 @@ def workers(ctx, account):
         amount = Amount({
             "amount": worker["daily_pay"],
             "asset_id": "1.3.0"})
-        t.add_row([
+        t.append([
             worker["id"],
             "{name}\n{url}".format(**worker),
             str(amount),
@@ -95,4 +94,4 @@ def workers(ctx, account):
             "{work_begin_date:%Y-%m-%d}\n-\n{work_end_date:%Y-%m-%d}".format(**worker),
             str(Account(worker["worker_account"])["name"]),
         ])
-    click.echo(t)
+    print_table(t)
