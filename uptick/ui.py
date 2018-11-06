@@ -4,7 +4,6 @@ import logging
 import prettytable
 import pkg_resources
 from termcolor import colored
-from tabulate import tabulate
 from bitshares.account import Account
 from bitshares.amount import Amount
 log = logging.getLogger(__name__)
