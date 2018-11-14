@@ -143,7 +143,7 @@ def history(ctx, account, limit, type, csv, exclude, raw):
         ):
             block = BlockHeader(b["block_num"])
             row = [
-                b["id"].split(".")[2],
+                b["id"],
                 "%s (%s)" % (block.time(), b["block_num"]),
                 "{} ({})".format(getOperationNameForId(b["op"][0]), b["op"][0]),
                 pprintOperation(b) if not raw else json.dumps(b, indent=4),
