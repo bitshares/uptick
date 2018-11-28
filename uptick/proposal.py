@@ -10,6 +10,7 @@ from .main import main, config
 from .ui import (
     print_table,
     print_tx,
+    format_dict
 )
 
 
@@ -90,7 +91,7 @@ def proposals(ctx, account):
                 proposal["available_owner_approvals"],
                 indent=1),
             proposal.get("review_period_time", None),
-            format_json(proposal["proposed_transaction"], indent=4),
+            format_dict(proposal["proposed_transaction"]),
         ])
 
     print_table(t)
