@@ -416,3 +416,42 @@ def fundfeepool(ctx, symbol, amount, account):
     """ Fund the fee pool of an asset
     """
     print_tx(ctx.bitshares.fund_fee_pool(symbol, amount, account=account))
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument(
+    "collateral_amount",
+    type=float,
+)
+@click.argument(
+    "collateral_symbol",
+    type=str,
+)
+@click.argument(
+    "debt_amount",
+    type=float,
+)
+@click.argument(
+    "debt_symbol",
+    type=str,
+)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to use for this action"
+)
+@unlockWallet
+def bidcollateral(ctx,
+    collateral_symbol, collateral_amount,
+    debt_symbol, debt_amount,
+    account):
+    """ Bid for collateral in the settlement fund
+    """
+    print_tx(ctx.bitshares.bid_collateral(
+        Amount(collateral_amount, collateral_symbol),
+        Amount(debt_amount, debt_symbol),
+        account=account
+    ))
