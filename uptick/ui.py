@@ -3,7 +3,6 @@ import click
 import logging
 import prettytable
 import pkg_resources
-from termcolor import colored
 from bitshares.account import Account
 from bitshares.amount import Amount
 log = logging.getLogger(__name__)
@@ -18,8 +17,10 @@ def format_dict(tx):
         formatters.TerminalFormatter()
     )
 
+
 def format_tx(tx):
     return format_dict(tx)
+
 
 def print_tx(tx):
     click.echo(format_tx(tx))
