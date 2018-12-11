@@ -130,10 +130,11 @@ def format_table(table, hrules=False, align='l'):
         hrules=hrules)
     t.align = align
     for index, row in enumerate(table[1:]):
+        row = [str(x) for x in row]
         row[0] = click.style(row[0], fg="yellow")
         t.add_row(row)
-
     return t
+
 
 def print_table(*args, **kwargs):
     """
