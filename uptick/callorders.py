@@ -60,7 +60,8 @@ def calls(ctx, obj):
 @click.pass_context
 @onlineChain
 @click.argument("asset", type=str)
-def settlements(ctx, asset):
+@click.option("--limit", type=int, default=10)
+def settlements(ctx, asset, limit):
     """ Show pending settlement orders of a bitasset
     """
     from bitshares.asset import Asset
@@ -69,7 +70,7 @@ def settlements(ctx, asset):
     if not asset.is_bitasset:
         print_message("{} is not a bitasset.".format(asset["symbol"]), "warning")
         sys.exit(1)
-    calls = asset.get_settle_orders(10)
+    calls = asset.get_settle_orders(limit)
     t = [["acount", "amount", "date"]]
     for call in calls:
         t.append([str(call["account"]["name"]), str(call["amount"]), str(call["date"])])
