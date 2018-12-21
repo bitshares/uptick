@@ -367,8 +367,8 @@ def bidcollateral(
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument("symbol", type=str)
 @click.argument("amount", type=float)
+@click.argument("symbol", type=str)
 @click.option(
     "--account",
     default=config["default_account"],
@@ -379,5 +379,4 @@ def bidcollateral(
 def settle(ctx, symbol, amount, account):
     """ Fund the fee pool of an asset
     """
-    raise NotImplementedError
     print_tx(ctx.bitshares.asset_settle(Amount(amount, symbol), account=account))
