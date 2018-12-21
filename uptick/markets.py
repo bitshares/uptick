@@ -362,3 +362,22 @@ def bidcollateral(
             account=account,
         )
     )
+
+
+@main.command()
+@click.pass_context
+@onlineChain
+@click.argument("symbol", type=str)
+@click.argument("amount", type=float)
+@click.option(
+    "--account",
+    default=config["default_account"],
+    type=str,
+    help="Account to use for this action",
+)
+@unlockWallet
+def settle(ctx, symbol, amount, account):
+    """ Fund the fee pool of an asset
+    """
+    raise NotImplementedError
+    print_tx(ctx.bitshares.asset_settle(Amount(amount, symbol), account=account))
