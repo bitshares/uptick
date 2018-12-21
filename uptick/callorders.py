@@ -16,7 +16,8 @@ from .ui import print_table, print_message
 @click.pass_context
 @onlineChain
 @click.argument("obj", required=False, default=config["default_account"], type=str)
-def calls(ctx, obj):
+@click.option("--limit", type=int, default=10)
+def calls(ctx, obj, limit):
     """ List call/short positions of an account or an asset
     """
     if obj.upper() == obj:
@@ -24,7 +25,7 @@ def calls(ctx, obj):
         from bitshares.asset import Asset
 
         asset = Asset(obj, full=True)
-        calls = asset.get_call_orders(10)
+        calls = asset.get_call_orders(limit)
         t = [["acount", "debt", "collateral", "call price", "ratio"]]
         for call in calls:
             t.append(
