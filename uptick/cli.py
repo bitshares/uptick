@@ -6,16 +6,8 @@ import click
 import logging
 from bitshares.transactionbuilder import TransactionBuilder
 from prettytable import PrettyTable
-from .ui import (
-    print_permissions,
-    get_terminal,
-    print_version,
-)
-from .decorators import (
-    onlineChain,
-    offlineChain,
-    unlockWallet
-)
+from .ui import print_permissions, get_terminal, print_version
+from .decorators import onlineChain, offlineChain, unlockWallet
 from .main import main
 from . import (
     account,
@@ -32,32 +24,22 @@ from . import (
     vesting,
     message,
     rpc,
-    votes
+    votes,
 )
-from .ui import (
-    print_message,
-    print_table,
-    print_tx
-)
+from .ui import print_message, print_table, print_tx
+
 log = logging.getLogger(__name__)
 
 
 @main.command()
 @click.pass_context
 @offlineChain
-@click.argument(
-    'key',
-    type=str
-)
-@click.argument(
-    'value',
-    type=str
-)
+@click.argument("key", type=str)
+@click.argument("value", type=str)
 def set(ctx, key, value):
     """ Set configuration parameters
     """
-    if (key == "default_account" and
-            value[0] == "@"):
+    if key == "default_account" and value[0] == "@":
         value = value[1:]
     ctx.bitshares.config[key] = value
 
@@ -77,10 +59,7 @@ def configuration(ctx):
 @main.command()
 @click.pass_context
 @offlineChain
-@click.argument(
-    'filename',
-    required=False,
-    type=click.File('r'))
+@click.argument("filename", required=False, type=click.File("r"))
 @unlockWallet
 def sign(ctx, filename):
     """ Sign a json-formatted transaction
@@ -98,10 +77,7 @@ def sign(ctx, filename):
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument(
-    'filename',
-    required=False,
-    type=click.File('r'))
+@click.argument("filename", required=False, type=click.File("r"))
 def broadcast(ctx, filename):
     """ Broadcast a json-formatted transaction
     """
@@ -115,31 +91,19 @@ def broadcast(ctx, filename):
 
 
 @main.command()
-@click.option(
-    '--prefix',
-    type=str,
-    default="BTS",
-    help="The refix to use"
-)
-@click.option(
-    '--num',
-    type=int,
-    default=1,
-    help="The number of keys to derive"
-)
+@click.option("--prefix", type=str, default="BTS", help="The refix to use")
+@click.option("--num", type=int, default=1, help="The number of keys to derive")
 def randomwif(prefix, num):
     """ Obtain a random private/public key pair
     """
     from bitsharesbase.account import PrivateKey
+
     t = [["wif", "pubkey"]]
     for n in range(0, num):
         wif = PrivateKey()
-        t.append([
-            str(wif),
-            format(wif.pubkey, prefix)
-        ])
+        t.append([str(wif), format(wif.pubkey, prefix)])
     print_table(t)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

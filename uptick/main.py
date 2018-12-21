@@ -1,84 +1,71 @@
 import click
 from bitshares.storage import get_default_config_store
-from .ui import (
-    print_version,
-)
+from .ui import print_version
 
 config = get_default_config_store()
 
 
 @click.group()
 @click.option(
-    '--debug/--no-debug',
+    "--debug/--no-debug",
     default=False,
-    help="Enable/Disable Debugging (no-broadcasting mode)"
+    help="Enable/Disable Debugging (no-broadcasting mode)",
 )
 @click.option(
-    '--node',
+    "--node",
     type=str,
     default=config["node"],
-    help='Websocket URL for public BitShares API'
+    help="Websocket URL for public BitShares API",
 )
 @click.option(
-    '--rpcuser',
+    "--rpcuser",
     type=str,
     default=config["rpcuser"],
-    help='Websocket user if authentication is required'
+    help="Websocket user if authentication is required",
 )
 @click.option(
-    '--rpcpassword',
+    "--rpcpassword",
     type=str,
     default=config["rpcpassword"],
-    help='Websocket password if authentication is required')
-@click.option(
-    '--nobroadcast/--broadcast',
-    '-d',
-    default=False,
-    help='Do not broadcast anything')
-@click.option(
-    '--unsigned/--signed',
-    '-x',
-    default=False,
-    help='Do not try to sign the transaction')
-@click.option(
-    '--proposer',
-    help="Propose transaction with this account",
-    type=str
+    help="Websocket password if authentication is required",
 )
 @click.option(
-    '--proposal_review',
+    "--nobroadcast/--broadcast", "-d", default=False, help="Do not broadcast anything"
+)
+@click.option(
+    "--unsigned/--signed",
+    "-x",
+    default=False,
+    help="Do not try to sign the transaction",
+)
+@click.option("--proposer", help="Propose transaction with this account", type=str)
+@click.option(
+    "--proposal_review",
     help="Propose review time in seconds (defaults to 0)",
     type=int,
-    default=0
+    default=0,
 )
 @click.option(
-    '--proposal_expiration',
+    "--proposal_expiration",
     help="Propose expiration time in seconds (defaults to 24h)",
     type=int,
-    default=60 * 60 * 24
+    default=60 * 60 * 24,
 )
 @click.option(
-    '--expiration',
-    '-e',
-    default=30,
-    help='Expiration time in seconds (defaults to 30)')
+    "--expiration", "-e", default=30, help="Expiration time in seconds (defaults to 30)"
+)
+@click.option("--verbose", "-v", type=int, default=3, help="Verbosity (0-15)")
 @click.option(
-    '--verbose',
-    '-v',
-    type=int,
-    default=3,
-    help='Verbosity (0-15)')
-@click.option(
-    '--version',
+    "--version",
     is_flag=True,
     callback=print_version,
     expose_value=False,
     is_eager=True,
-    help="Show version")
+    help="Show version",
+)
 @click.option(
-    '--blocking',
-    is_flag=True,
-    help="Wait for transaction to be included into a block")
+    "--blocking", is_flag=True, help="Wait for transaction to be included into a block"
+)
 @click.pass_context
 def main(ctx, **kwargs):
     ctx.obj = {}
