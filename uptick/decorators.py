@@ -63,7 +63,7 @@ def offline(f):
         ctx.obj["offline"] = True
         ctx.bitshares = BitShares(**ctx.obj)
         ctx.blockchain = ctx.bitshares
-        set_shared_bitshares_instance(ctx.bitshares)
+        ctx.bitshares.set_shared_instance()
         return ctx.invoke(f, *args, **kwargs)
 
     return update_wrapper(new_func, f)
