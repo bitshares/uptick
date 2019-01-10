@@ -90,6 +90,16 @@ def feeds(ctx, assets, pricethreshold, maxage):
         else:
             return click.style(str(p), fg="green")
 
+    def price_diff(p, ref):
+        d = (float(p) - float(ref)) / float(ref) * 100
+        if math.fabs(d) >= 5:
+            color = "red"
+        elif math.fabs(d) >= 2.5:
+            color = "yellow"
+        else:
+            color = "green"
+        return click.style("{:8.2f}%".format(d), fg=color)
+
     def test_date(d):
         t = d.replace(tzinfo=None)
         now = datetime.utcnow()
@@ -112,6 +122,7 @@ def feeds(ctx, assets, pricethreshold, maxage):
                 "Core Exchange Price",
                 "MCR",
                 "SSPR",
+                "delta",
             ]
         )
         t.align = "c"
@@ -140,6 +151,9 @@ def feeds(ctx, assets, pricethreshold, maxage):
                     ),
                     feed["maintenance_collateral_ratio"] / 10,
                     feed["maximum_short_squeeze_ratio"] / 10,
+                    price_diff(
+                        feed["core_exchange_rate"], current_feed["core_exchange_rate"]
+                    ),
                 ]
             )
         for missing in builtins.set(witness_accounts).difference(producingwitnesses):
@@ -153,6 +167,7 @@ def feeds(ctx, assets, pricethreshold, maxage):
                         bold=True,
                     ),
                     click.style(str(datetime(1970, 1, 1))),
+                    click.style("missing", bg="red"),
                     click.style("missing", bg="red"),
                     click.style("missing", bg="red"),
                     click.style("missing", bg="red"),
