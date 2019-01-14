@@ -1,4 +1,5 @@
 import click
+from tqdm import tqdm
 from bitshares.account import Account
 from .decorators import onlineChain, offlineChain, unlockWallet
 from .main import main, config
@@ -129,11 +130,20 @@ def listkeys(ctx):
 def listaccounts(ctx):
     """ List accounts (for the connected network)
     """
-    t = [["Name", "Type", "Available Key"]]
-    for account in ctx.bitshares.wallet.getAccounts():
-        t.append(
-            [account["name"] or "n/a", account["type"] or "n/a", account["pubkey"]]
-        )
+    t = [["Name", "Key", "Owner", "Active", "Memo"]]
+    for key in tqdm(ctx.bitshares.wallet.getPublicKeys(True)):
+        for account in ctx.bitshares.wallet.getAccountsFromPublicKey(key):
+            account = Account(account)
+            is_owner = key in [x[0] for x in account["owner"]["key_auths"]]
+            is_active = key in [x[0] for x in account["active"]["key_auths"]]
+            is_memo = key == account["options"]["memo_key"]
+            t.append([
+                account["name"],
+                key,
+                "x" if is_owner else "",
+                "x" if is_active else "",
+                "x" if is_memo else "",
+            ])
     print_table(t)
 
 
