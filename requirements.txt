@@ -1,0 +1,8 @@
+bitshares>=0.3.0rc1
+prettytable
+click
+click-datetime
+termcolor
+tqdm
+pyyaml
+pygments
