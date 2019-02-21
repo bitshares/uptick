@@ -1,13 +1,8 @@
 import click
 from bitshares.message import Message, InvalidMessageSignature
-from .decorators import (
-    onlineChain,
-    unlockWallet,
-)
+from .decorators import onlineChain, unlockWallet
 from .main import main, config
-from .ui import (
-    print_message
-)
+from .ui import print_message
 
 
 @main.group()
@@ -23,23 +18,15 @@ def message(ctx):
 @onlineChain
 @unlockWallet
 @click.option(
-    "--account",
-    default=config["default_account"],
-    type=str,
-    help="Account to use"
+    "--account", default=config["default_account"], type=str, help="Account to use"
 )
-@click.option(
-    "--file",
-    type=click.File('r')
-)
+@click.option("--file", type=click.File("r"))
 def sign(ctx, file, account):
     """ Sign a message with an account
     """
     if not file:
-        print_message(
-            "Prompting for message. Terminate with CTRL-D",
-            "info")
-        file = click.get_text_stream('stdin')
+        print_message("Prompting for message. Terminate with CTRL-D", "info")
+        file = click.get_text_stream("stdin")
     m = Message(file.read(), bitshares_instance=ctx.bitshares)
     print_message(m.sign(account), "info")
 
@@ -48,24 +35,15 @@ def sign(ctx, file, account):
 @click.pass_context
 @onlineChain
 @click.option(
-    "--account",
-    default=config["default_account"],
-    type=str,
-    help="Account to use"
+    "--account", default=config["default_account"], type=str, help="Account to use"
 )
-@click.option(
-    "--file",
-    type=click.File('r')
-)
+@click.option("--file", type=click.File("r"))
 def verify(ctx, file, account):
     """ Verify a signed message
     """
     if not file:
-        print_message(
-            "Prompting for message. Terminate with CTRL-D",
-            "info",
-        )
-        file = click.get_text_stream('stdin')
+        print_message("Prompting for message. Terminate with CTRL-D", "info")
+        file = click.get_text_stream("stdin")
     m = Message(file.read(), bitshares_instance=ctx.bitshares)
     try:
         if m.verify():

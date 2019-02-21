@@ -3,23 +3,24 @@ import click
 import logging
 import prettytable
 import pkg_resources
-from termcolor import colored
 from bitshares.account import Account
 from bitshares.amount import Amount
+
 log = logging.getLogger(__name__)
 
 
 def format_dict(tx):
     from pygments import highlight, lexers, formatters
+
     json_raw = json.dumps(tx, sort_keys=True, indent=4)
     return highlight(
-        bytes(json_raw, 'UTF-8'),
-        lexers.JsonLexer(),
-        formatters.TerminalFormatter()
+        bytes(json_raw, "UTF-8"), lexers.JsonLexer(), formatters.TerminalFormatter()
     )
+
 
 def format_tx(tx):
     return format_dict(tx)
+
 
 def print_tx(tx):
     click.echo(format_tx(tx))
@@ -55,10 +56,12 @@ def print_version(ctx, param, value):
         return
     t = [["name", "version"]]
     for app in ["uptick", "bitshares", "graphenelib"]:
-        t.append([
-            highlight(pkg_resources.require(app)[0].project_name),
-            detail(pkg_resources.require(app)[0].version)
-        ])
+        t.append(
+            [
+                highlight(pkg_resources.require(app)[0].project_name),
+                detail(pkg_resources.require(app)[0].version),
+            ]
+        )
     print_table(t)
     ctx.exit()
 
@@ -69,33 +72,24 @@ def print_permissions(account):
         auths = []
         # account auths:
         for authority in sorted(
-            account[permission]["account_auths"],
-            key=lambda x: x[1],
-            reverse=True
+            account[permission]["account_auths"], key=lambda x: x[1], reverse=True
         ):
-            auths.append("%s (%d)" % (
-                Account(authority[0])["name"], authority[1]))
+            auths.append("%s (%d)" % (Account(authority[0])["name"], authority[1]))
         # key auths:
         for authority in sorted(
-            account[permission]["key_auths"],
-            key=lambda x: x[1],
-            reverse=True
+            account[permission]["key_auths"], key=lambda x: x[1], reverse=True
         ):
             auths.append("%s (%d)" % (authority[0], authority[1]))
-        t.append([
-            permission,
-            account[permission]["weight_threshold"],
-            "\n".join(auths),
-        ])
-    t.append([
-        "memo", "n/a",
-        account["options"]["memo_key"],
-    ])
+        t.append(
+            [permission, account[permission]["weight_threshold"], "\n".join(auths)]
+        )
+    t.append(["memo", "n/a", account["options"]["memo_key"]])
     print_table(t, hrules=True)
 
 
 def get_terminal(text="Password", confirm=False, allowedempty=False):
     import getpass
+
     while True:
         pw = getpass.getpass(text)
         if not pw and not allowedempty:
@@ -104,35 +98,29 @@ def get_terminal(text="Password", confirm=False, allowedempty=False):
         else:
             if not confirm:
                 break
-            pwck = getpass.getpass(
-                "Confirm " + text
-            )
-            if (pw == pwck):
+            pwck = getpass.getpass("Confirm " + text)
+            if pw == pwck:
                 break
             else:
                 print_message("Not matching!", "warning")
     return pw
 
 
-def format_table(table, hrules=False, align='l'):
+def format_table(table, hrules=False, align="l"):
     if not hrules:
         hrules = prettytable.FRAME
     else:
         hrules = prettytable.ALL
 
-    header = [
-        click.style(x, fg="red", bold=True)
-        for x in table[0]
-    ]
-    t = prettytable.PrettyTable(
-        header,
-        hrules=hrules)
+    header = [click.style(x, fg="red", bold=True) for x in table[0]]
+    t = prettytable.PrettyTable(header, hrules=hrules)
     t.align = align
     for index, row in enumerate(table[1:]):
+        row = [str(x) for x in row]
         row[0] = click.style(row[0], fg="yellow")
         t.add_row(row)
-
     return t
+
 
 def print_table(*args, **kwargs):
     """
@@ -151,6 +139,7 @@ def print_table(*args, **kwargs):
 
 def pprintOperation(op):
     from bitshares.price import Order, FilledOrder
+
     id = op["op"][0]
     op = op["op"][1]
     if id == 1:
@@ -171,8 +160,8 @@ def pprintOperation(op):
         from_account = Account(op["from"])
         to_account = Account(op["to"])
         amount = Amount(op["amount"])
-        return (
-            "Transfer from {from_account[name]} to {to_account[name]}: {amount}"
-            .format(**locals()))
+        return "Transfer from {from_account[name]} to {to_account[name]}: {amount}".format(
+            **locals()
+        )
     else:
         return format_dict(op)

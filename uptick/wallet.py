@@ -1,25 +1,19 @@
 import click
+from tqdm import tqdm
 from bitshares.account import Account
-from .decorators import (
-    onlineChain,
-    offlineChain,
-    unlockWallet
-)
+from .decorators import onlineChain, offlineChain, unlockWallet
 from .main import main, config
-from .ui import (
-    print_table,
-    print_message
-)
+from .ui import print_table, print_message
 
 
 @main.command()
 @click.pass_context
 @click.option(
-    '--password',
+    "--password",
     prompt="Wallet Passphrase",
     hide_input=True,
     confirmation_prompt=True,
-    help="New Wallet Passphrase"
+    help="New Wallet Passphrase",
 )
 @offlineChain
 def createwallet(ctx, password):
@@ -32,11 +26,11 @@ def createwallet(ctx, password):
 @click.pass_context
 @offlineChain
 @click.option(
-    '--new-password',
+    "--new-password",
     prompt="New Wallet Passphrase",
     hide_input=True,
     confirmation_prompt=True,
-    help="New Wallet Passphrase"
+    help="New Wallet Passphrase",
 )
 @unlockWallet
 def changewalletpassphrase(ctx, new_password):
@@ -48,10 +42,7 @@ def changewalletpassphrase(ctx, new_password):
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument(
-    "key",
-    nargs=-1
-)
+@click.argument("key", nargs=-1)
 @unlockWallet
 def addkey(ctx, key):
     """ Add a private key to the wallet
@@ -62,7 +53,7 @@ def addkey(ctx, key):
                 "Private Key (wif) [Enter to quit]",
                 hide_input=True,
                 show_default=False,
-                default="exit"
+                default="exit",
             )
             if not key or key == "exit":
                 break
@@ -95,10 +86,7 @@ def addkey(ctx, key):
 @main.command()
 @click.pass_context
 @offlineChain
-@click.argument(
-    "pubkeys",
-    nargs=-1
-)
+@click.argument("pubkeys", nargs=-1)
 def delkey(ctx, pubkeys):
     """ Delete a private key from the wallet
     """
@@ -116,10 +104,7 @@ def delkey(ctx, pubkeys):
 @main.command()
 @click.pass_context
 @offlineChain
-@click.argument(
-    "pubkey",
-    nargs=1
-)
+@click.argument("pubkey", nargs=1)
 @unlockWallet
 def getkey(ctx, pubkey):
     """ Obtain private key in WIF format
@@ -145,27 +130,29 @@ def listkeys(ctx):
 def listaccounts(ctx):
     """ List accounts (for the connected network)
     """
-    t = [["Name", "Type", "Available Key"]]
-    for account in ctx.bitshares.wallet.getAccounts():
-        t.append([
-            account["name"] or "n/a",
-            account["type"] or "n/a",
-            account["pubkey"]
-        ])
+    t = [["Name", "Key", "Owner", "Active", "Memo"]]
+    for key in tqdm(ctx.bitshares.wallet.getPublicKeys(True)):
+        for account in ctx.bitshares.wallet.getAccountsFromPublicKey(key):
+            account = Account(account)
+            is_owner = key in [x[0] for x in account["owner"]["key_auths"]]
+            is_active = key in [x[0] for x in account["active"]["key_auths"]]
+            is_memo = key == account["options"]["memo_key"]
+            t.append([
+                account["name"],
+                key,
+                "x" if is_owner else "",
+                "x" if is_active else "",
+                "x" if is_memo else "",
+            ])
     print_table(t)
 
 
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument(
-    "account",
-    nargs=1,
-)
+@click.argument("account", nargs=1)
 @click.option(
-    "--role",
-    type=click.Choice(["owner", "active", "memo"]),
-    default="active"
+    "--role", type=click.Choice(["owner", "active", "memo"]), default="active"
 )
 @unlockWallet
 def importaccount(ctx, account, role):
@@ -173,16 +160,15 @@ def importaccount(ctx, account, role):
     """
     from bitsharesbase.account import PasswordKey
 
-    password = click.prompt(
-        "Account Passphrase",
-        hide_input=True,
-    )
+    password = click.prompt("Account Passphrase", hide_input=True)
     account = Account(account, bitshares_instance=ctx.bitshares)
     imported = False
 
     if role == "owner":
         owner_key = PasswordKey(account["name"], password, role="owner")
-        owner_pubkey = format(owner_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
+        owner_pubkey = format(
+            owner_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"]
+        )
         if owner_pubkey in [x[0] for x in account["owner"]["key_auths"]]:
             print_message("Importing owner key!")
             owner_privkey = owner_key.get_private_key()
@@ -191,7 +177,9 @@ def importaccount(ctx, account, role):
 
     if role == "active":
         active_key = PasswordKey(account["name"], password, role="active")
-        active_pubkey = format(active_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
+        active_pubkey = format(
+            active_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"]
+        )
         if active_pubkey in [x[0] for x in account["active"]["key_auths"]]:
             print_message("Importing active key!")
             active_privkey = active_key.get_private_key()
@@ -200,7 +188,9 @@ def importaccount(ctx, account, role):
 
     if role == "memo":
         memo_key = PasswordKey(account["name"], password, role=role)
-        memo_pubkey = format(memo_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
+        memo_pubkey = format(
+            memo_key.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"]
+        )
         if memo_pubkey == account["memo_key"]:
             print_message("Importing memo key!")
             memo_privkey = memo_key.get_private_key()
@@ -214,7 +204,7 @@ def importaccount(ctx, account, role):
 @main.command()
 @click.pass_context
 @click.option(
-    '--ignore-warning/--no-ignore-warning',
+    "--ignore-warning/--no-ignore-warning",
     prompt="Are you sure you want to wipe your wallet? This action is irreversible!",
 )
 @offlineChain

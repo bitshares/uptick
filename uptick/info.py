@@ -7,27 +7,15 @@ from bitshares.blockchain import Blockchain
 from bitshares.block import Block
 from bitshares.account import Account
 from bitshares.asset import Asset
-from .decorators import (
-    onlineChain,
-)
+from .decorators import onlineChain
 from .main import main, config
-from .ui import (
-    print_table,
-    print_message,
-    format_tx,
-    highlight,
-    detail,
-)
+from .ui import print_table, print_message, format_tx, highlight, detail
 
 
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument(
-    'objects',
-    type=str,
-    nargs=-1
-)
+@click.argument("objects", type=str, nargs=-1)
 def info(ctx, objects):
     """ Obtain all kinds of information
     """
@@ -118,12 +106,7 @@ def info(ctx, objects):
 @main.command()
 @click.pass_context
 @onlineChain
-@click.argument(
-    'currency',
-    type=str,
-    required=False,
-    default="USD"
-)
+@click.argument("currency", type=str, required=False, default="USD")
 def fees(ctx, currency):
     """ List fees
     """
@@ -146,16 +129,19 @@ def fees(ctx, currency):
 
     for fee in fees:
         for f in fee[1]:
-            t.append([
-                highlight(getOperationNameForId(fee[0])),
-                detail(f),
-                detail(str(Amount({
-                    "amount": fee[1].get(f, 0),
-                    "asset_id": "1.3.0"
-                }))),
-                detail(str(price * Amount({
-                    "amount": fee[1].get(f, 0),
-                    "asset_id": "1.3.0"
-                })))
-            ])
+            t.append(
+                [
+                    highlight(getOperationNameForId(fee[0])),
+                    detail(f),
+                    detail(
+                        str(Amount({"amount": fee[1].get(f, 0), "asset_id": "1.3.0"}))
+                    ),
+                    detail(
+                        str(
+                            price
+                            * Amount({"amount": fee[1].get(f, 0), "asset_id": "1.3.0"})
+                        )
+                    ),
+                ]
+            )
     print_table(t)

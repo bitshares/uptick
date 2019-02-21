@@ -1,10 +1,5 @@
 from functools import wraps
-from flask import (
-    Flask,
-    jsonify,
-    request,
-    abort
-)
+from flask import Flask, jsonify, request, abort
 from flask_api import FlaskAPI
 
 
@@ -20,9 +15,9 @@ def marketstr(market):
     return "%s_%s" % (market["base"], market["quote"])
 
 
-@app.route('/public')
+@app.route("/public")
 def public():
-    command = request.args.get('command')
+    command = request.args.get("command")
 
     if command == "returnTicker":
         r = {}
@@ -34,13 +29,12 @@ def public():
                 "last": ticker["last"],
                 "lowestAsk": ticker["lowestAsk"],
                 "highestBid": ticker["highestBid"],
-                "percentChange": ticker["percentChange"] ,
+                "percentChange": ticker["percentChange"],
                 "baseVolume": ticker["baseVolume"],
                 "quoteVolume": ticker["quoteVolume"],
-
             }
         return r
-            
+
     elif command == "return24Volume":
         r = {}
         total = {}
@@ -52,10 +46,7 @@ def public():
             quote = market["quote"]["symbol"]
             total["base"] = total.get("base", 0) + ticker["baseVolume"]
             total["quote"] = total.get("quote", 0) + ticker["quoteVolume"]
-            r[mstr] = {
-                base: ticker["baseVolume"],
-                quote: ticker["quoteVolume"],
-            }
+            r[mstr] = {base: ticker["baseVolume"], quote: ticker["quoteVolume"]}
         for symbol, value in total.items():
             r["total%s" % symbol] = value
         return r
