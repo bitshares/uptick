@@ -141,11 +141,14 @@ def unlock(f):
                     break
             else:
                 print_message("No wallet installed yet. Creating ...", "warning")
-                pwd = click.prompt(
-                    "Wallet Encryption Passphrase",
-                    hide_input=True,
-                    confirmation_prompt=True,
-                )
+                if "UNLOCK" in os.environ:
+                    pwd = os.environ["UNLOCK"]
+                else:
+                    pwd = click.prompt(
+                        "Wallet Encryption Passphrase",
+                        hide_input=True,
+                        confirmation_prompt=True,
+                    )
                 ctx.bitshares.wallet.create(pwd)
         return ctx.invoke(f, *args, **kwargs)
 
