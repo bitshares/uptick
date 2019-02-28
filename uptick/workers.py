@@ -47,12 +47,18 @@ def disapproveworker(ctx, workers, account):
 @click.pass_context
 @onlineChain
 @click.argument("account", default=None, required=False)
-def workers(ctx, account):
+@click.option("--top", type=int)
+def workers(ctx, account, top):
     """ List all workers (of an account)
     """
     workers = Workers(account)
     t = [["id", "name/url", "daily_pay", "votes", "time", "account"]]
-    for worker in workers:
+    workers_sorted = sorted(
+        workers, key=lambda x: int(x["total_votes_for"]), reverse=True
+    )
+    if top:
+        workers_sorted = workers_sorted[: top + 1]
+    for worker in workers_sorted:
         if worker["work_end_date"] < datetime.datetime.utcnow():
             continue
         votes = Amount({"amount": worker["total_votes_for"], "asset_id": "1.3.0"})
