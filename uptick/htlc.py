@@ -28,16 +28,21 @@ def htlc():
 def create(ctx, to, amount, symbol, secret, hash, account, expiration):
     """ Create an HTLC contract
     """
-    print_tx(
-        ctx.blockchain.htlc_create(
-            Amount(amount, symbol),
-            to,
-            secret,
-            hash_type=hash,
-            expiration=expiration,
-            account=account,
-        )
+    ctx.blockchain.blocking = True
+    tx = ctx.blockchain.htlc_create(
+        Amount(amount, symbol),
+        to,
+        secret,
+        hash_type=hash,
+        expiration=expiration,
+        account=account,
     )
+    tx.pop("trx", None)
+    print_tx(tx)
+    results = tx.get("operation_results", {})
+    if results:
+        htlc_id = results[0][1]
+        print("Your htlc_id is: {}".format(htlc_id))
 
 
 @htlc.command()
