@@ -25,6 +25,7 @@ from . import (
     message,
     rpc,
     votes,
+    htlc,
 )
 from .ui import print_message, print_table, print_tx
 
