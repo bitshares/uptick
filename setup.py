@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from setuptools import setup
 import sys
 
-__VERSION__ = "0.2.2"
+__VERSION__ = "0.2.3"
 
 assert sys.version_info[0] == 3, "Uptick requires Python > 3"
 
