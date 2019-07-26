@@ -37,3 +37,31 @@ def getcloudloginkey(ctx, account):
         )
 
     print_table(t)
+
+
+@tools.command()
+@click.pass_context
+@online
+@click.option("--limit", default=10, type=int)
+def getbrainkeys(ctx, limit):
+    """ Return keys for cloudlogin
+    """
+    from bitsharesbase.account import BrainKey
+
+    password = click.prompt("Passphrase", hide_input=True).strip()
+    t = [["index", "wif", "pubkey", "accounts"]]
+    wif = BrainKey(password)
+    for i in range(limit):
+        pubkey = format(wif.get_public_key(), ctx.bitshares.rpc.chain_params["prefix"])
+
+        t.append(
+            [
+                i,
+                str(wif.get_private_key()),
+                pubkey,
+                ctx.bitshares.wallet.getAccountFromPublicKey(pubkey) or "",
+            ]
+        )
+        next(wif)
+
+    print_table(t)
