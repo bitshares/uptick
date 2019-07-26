@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import sys
 import json
@@ -26,6 +27,7 @@ from . import (
     rpc,
     votes,
     htlc,
+    tools,
 )
 from .ui import print_message, print_table, print_tx
 
