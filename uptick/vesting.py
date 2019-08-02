@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import click
 from prettytable import PrettyTable
 from bitshares.amount import Amount
@@ -17,10 +18,10 @@ def vesting(ctx, account):
     """ List accounts vesting balances
     """
     account = Account(account, full=True)
-    t = [["vesting_id", "claimable"]]
+    t = [["vesting_id", "claimable", "balance_type"]]
     for vest in account["vesting_balances"]:
         vesting = Vesting(vest)
-        t.append([vesting["id"], str(vesting.claimable)])
+        t.append([vesting["id"], str(vesting.claimable), vesting["balance_type"]])
     print_table(t)
 
 
