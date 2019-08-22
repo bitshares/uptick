@@ -70,15 +70,17 @@ def getbrainkeys(ctx, limit):
 @tools.command()
 @click.argument("identifiers", nargs=-1)
 def operation(identifiers):
+    """ Get an operation name/id pair
+    """
     from bitsharesbase.operations import operations, getOperationNameForId
 
     ret = [["id", "name"]]
     for identifier in identifiers:
         try:
-            i = int(identifier)
-            name = operations[i]
-            ret.append([i, name])
+            id = int(identifier)
+            name = getOperationNameForId(i)
         except Exception:
-            name = getOperationNameForId(identifier)
-            ret.append([identifier, name])
+            name = identifier
+            id = operations[name]
+        ret.append([id, name])
     print_table(ret)
