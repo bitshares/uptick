@@ -38,10 +38,9 @@ check:
 dist:
 	python3 setup.py sdist bdist_wheel
 	python3 setup.py bdist_wheel
+
+upload:
 	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
-	#twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-	#python3 setup.py sdist upload -r pypi
-	#python3 setup.py bdist_wheel upload
 
 docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
@@ -51,3 +50,24 @@ release: clean check dist git
 
 authors:
 	git shortlog -e -s -n > AUTHORS
+
+authors_store:
+	git add AUTHORS
+	-git commit -m "Updating Authors"
+
+semver: semver-release semver-updates
+
+semver-release:
+	-semversioner release
+
+semver-updates:
+	semversioner changelog > CHANGELOG.md
+	$(eval CURRENT_VERSION = $(shell semversioner current-version))
+	sed -i "s/^__version__.*/__version__ = \"$(CURRENT_VERSION)\"/" setup.py
+	-git add .changes setup.py CHANGELOG.md
+	-git commit -m "semverioner release updates" --no-verify
+	-git flow release start $(CURRENT_VERSION)
+	git flow release finish $(CURRENT_VERSION)
+
+prerelease: test docs docs_store authors authors_store
+release: prerelease semver clean build check dist upload git
