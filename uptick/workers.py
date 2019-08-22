@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import click
 import datetime
@@ -48,14 +49,28 @@ def disapproveworker(ctx, workers, account):
 @onlineChain
 @click.argument("account", default=None, required=False)
 @click.option("--top", type=int)
-def workers(ctx, account, top):
+@click.option("--sort", default="total_votes_for")
+def workers(ctx, account, top, sort):
     """ List all workers (of an account)
     """
+
+    def normalize_sort_keys(name):
+        if name == "votes":
+            return "total_votes_for"
+        return name
+
     workers = Workers(account)
     t = [["id", "name/url", "daily_pay", "votes", "time", "account"]]
-    workers_sorted = sorted(
-        workers, key=lambda x: int(x["total_votes_for"]), reverse=True
-    )
+    sort = sort
+    sort = normalize_sort_keys(sort)
+    if sort in ["total_votes_for"]:
+        workers_sorted = sorted(workers, key=lambda x: int(x[sort]), reverse=True)
+    elif sort == "id":
+        workers_sorted = sorted(
+            workers, key=lambda x: int(x[sort].split(".")[2]), reverse=True
+        )
+    else:
+        workers_sorted = sorted(workers, key=lambda x: x[sort], reverse=True)
     if top:
         workers_sorted = workers_sorted[: top + 1]
     for worker in workers_sorted:

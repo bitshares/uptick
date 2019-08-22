@@ -1,0 +1,14 @@
+[
+  {
+    "description": "include semversioner",
+    "type": "patch"
+  },
+  {
+    "description": "Update docs on releases",
+    "type": "patch"
+  },
+  {
+    "description": "Update docs on releases",
+    "type": "patch"
+  }
+]

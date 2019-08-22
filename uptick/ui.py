@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import click
 import logging
@@ -44,11 +45,11 @@ def print_message(msg, mode="success"):
 
 
 def highlight(msg):
-    return click.style(msg, fg="yellow", bold=True)
+    return click.style(str(msg), fg="yellow", bold=True)
 
 
 def detail(msg):
-    return click.style(msg, fg="cyan")
+    return click.style(str(msg), fg="cyan")
 
 
 def print_version(ctx, param, value):
