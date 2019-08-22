@@ -46,6 +46,10 @@ docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
 	make -C docs clean html
 
+docs_store:
+	git add docs
+	-git commit -m "Updating docs/"
+
 release: clean check dist git
 
 authors:
