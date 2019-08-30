@@ -78,7 +78,7 @@ def operation(identifiers):
     for identifier in identifiers:
         try:
             id = int(identifier)
-            name = getOperationNameForId(i)
+            name = getOperationNameForId(id)
         except Exception:
             name = identifier
             id = operations[name]
