@@ -28,6 +28,7 @@ from . import (
     votes,
     htlc,
     tools,
+    bip38,
 )
 from .ui import print_message, print_table, print_tx
 
