@@ -4,6 +4,7 @@ import click
 import logging
 import prettytable
 import pkg_resources
+from bitshares.memo import Memo
 from bitshares.account import Account
 from bitshares.amount import Amount
 
@@ -138,7 +139,7 @@ def print_table(*args, **kwargs):
     click.echo(t)
 
 
-def pprintOperation(op):
+def pprintOperation(op, show_memo=False, ctx=None):
     from bitshares.price import Order, FilledOrder
 
     id = op["op"][0]
@@ -161,7 +162,16 @@ def pprintOperation(op):
         from_account = Account(op["from"])
         to_account = Account(op["to"])
         amount = Amount(op["amount"])
-        return "Transfer from {from_account[name]} to {to_account[name]}: {amount}".format(
+        memo = ""
+        if show_memo and ctx is not None:
+            try:
+                plain_memo = Memo(blockchain_instance=ctx.blockchain).decrypt(
+                    op["memo"]
+                )
+            except Exception as e:
+                plain_memo = str(e)
+            memo = " (memo: {plain_memo})".format(**locals())
+        return "Transfer from {from_account[name]} to {to_account[name]}: {amount}{memo}".format(
             **locals()
         )
     else:
