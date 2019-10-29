@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 import json
 import click
+from tqdm import tqdm
 from bitshares.proposal import Proposals
 from bitshares.account import Account
 from .decorators import onlineChain, unlockWallet
 from .main import main, config
-from .ui import print_table, print_tx, format_dict
+from .ui import print_table, print_tx, format_dict, pprintOperation
 
 
 @main.command()
@@ -60,7 +62,12 @@ def proposals(ctx, account):
             "proposal",
         ]
     ]
-    for proposal in proposals:
+    for proposal in tqdm(proposals):
+        ops = proposal["proposed_transaction"]["operations"]
+        opsList = list()
+        for op in tqdm(ops):
+            opsList.append(pprintOperation(op))
+
         t.append(
             [
                 proposal["id"],
@@ -80,7 +87,7 @@ def proposals(ctx, account):
                     indent=1,
                 ),
                 proposal.get("review_period_time", None),
-                format_dict(proposal["proposed_transaction"]),
+                "\n".join(opsList),
             ]
         )
 

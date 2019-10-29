@@ -142,8 +142,12 @@ def print_table(*args, **kwargs):
 def pprintOperation(op, show_memo=False, ctx=None):
     from bitshares.price import Order, FilledOrder
 
-    id = op["op"][0]
-    op = op["op"][1]
+    if isinstance(op, dict) and "op" in op:
+        id = op["op"][0]
+        op = op["op"][1]
+    else:
+        id = op[0]
+        op = op[1]
     if id == 1:
         return str(Order(op))
     elif id == 4:
