@@ -109,5 +109,17 @@ def randomwif(prefix, num):
     print_table(t)
 
 
+@main.command()
+@click.pass_context
+@onlineChain
+def status(ctx):
+    from bitshares.blockchain import Blockchain
+
+    b = Blockchain(blockchain_instance=ctx.blockchain)
+    t = [["Key", "Value"]]
+    t.append(["participation", b.participation_rate * 100])
+    print_table(t)
+
+
 if __name__ == "__main__":
     main()
