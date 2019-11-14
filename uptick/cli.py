@@ -6,6 +6,7 @@ import json
 import click
 import logging
 from bitshares.transactionbuilder import TransactionBuilder
+from bitsharesbase.account import PrivateKey, Address
 from prettytable import PrettyTable
 from .ui import print_permissions, get_terminal, print_version
 from .decorators import onlineChain, offlineChain, unlockWallet
@@ -97,15 +98,24 @@ def broadcast(ctx, filename):
 @main.command()
 @click.option("--prefix", type=str, default="BTS", help="The refix to use")
 @click.option("--num", type=int, default=1, help="The number of keys to derive")
-def randomwif(prefix, num):
+@click.option("--address/--no-address", default=False)
+def randomwif(prefix, num, address):
     """ Obtain a random private/public key pair
     """
-    from bitsharesbase.account import PrivateKey
-
-    t = [["wif", "pubkey"]]
+    if address:
+        t = [["wif", "pubkey", "address"]]
+    else:
+        t = [["wif", "pubkey"]]
     for n in range(0, num):
         wif = PrivateKey()
-        t.append([str(wif), format(wif.pubkey, prefix)])
+        if address:
+            address = Address.from_pubkey(
+                wif.pubkey, compressed=True, version=56, prefix=prefix
+            )
+            t.append([str(wif), format(wif.pubkey, prefix), str(address)])
+        else:
+            t.append([str(wif), format(wif.pubkey, prefix)])
+
     print_table(t)
 
 
