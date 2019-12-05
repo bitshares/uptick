@@ -193,6 +193,9 @@ def upgrade(ctx, account):
 @click.pass_context
 @onlineChain
 @click.option(
+    "--feepayer", nargs=1, default=None, help="Account to pay the fee from", type=str
+)
+@click.option(
     "--account",
     nargs=1,
     default=config["default_account"],
@@ -201,7 +204,7 @@ def upgrade(ctx, account):
 )
 @click.argument("account_name", nargs=1, type=str)
 @unlockWallet
-def cloneaccount(ctx, account_name, account):
+def cloneaccount(ctx, account_name, account, feepayer):
     """ Clone an account
 
         This copies the owner and active permissions as well as the
@@ -210,10 +213,14 @@ def cloneaccount(ctx, account_name, account):
     from bitsharesbase import transactions, operations
 
     account = Account(account)
+    if feepayer is None:
+        feepayer = account
+    else:
+        feepayer = Account(feepayer)
     op = {
         "fee": {"amount": 0, "asset_id": "1.3.0"},
-        "registrar": account["id"],
-        "referrer": account["id"],
+        "registrar": feepayer["id"],
+        "referrer": feepayer["id"],
         "referrer_percent": 100,
         "name": account_name,
         "owner": account["owner"],
