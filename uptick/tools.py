@@ -70,17 +70,33 @@ def getbrainkeys(ctx, limit):
 @tools.command()
 @click.argument("identifiers", nargs=-1)
 def operation(identifiers):
-    """ Get an operation name/id pair
+    """ Get an operation name/id pair.
+
+    IDENTIFIERS can be numbers, ranges (e.g. "5..9"), or partial
+    operation names (e.g. "htlc").  If called with no arguments, lists
+    all known operations.
+
     """
     from bitsharesbase.operations import operations, getOperationNameForId
 
     ret = [["id", "name"]]
+    num_ops = len(operations)
+    if identifiers==():
+        identifiers = [i for i in range(num_ops)]
     for identifier in identifiers:
         try:
             id = int(identifier)
             name = getOperationNameForId(id)
+            ret.append([id, name])
         except Exception:
-            name = identifier
-            id = operations[name]
-        ret.append([id, name])
+            if ".." in identifier:
+                bounds = identifier.split("..",1)
+                for id in range(int(bounds[0]),min(int(bounds[1])+1,num_ops)):
+                    name = getOperationNameForId(id)
+                    ret.append([id, name])
+            else:
+                for key in [k for k in operations.keys() if identifier in k]:
+                    id = operations[key]
+                    name = getOperationNameForId(id)
+                    ret.append([id, name])
     print_table(ret)
