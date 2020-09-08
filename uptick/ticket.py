@@ -29,7 +29,7 @@ def create(ctx, target, amount, symbol, account):
     """
 
     ctx.blockchain.blocking = True
-    tx = ctx.blockchain.voting_ticket_create(
+    tx = ctx.blockchain.create_voting_ticket(
         target,
         Amount(amount, symbol),
         account
@@ -81,7 +81,7 @@ def update(ctx, ticket_id, target, amount, account):
 
     amount = Amount(*amount) if amount[0] is not None else None
     ctx.blockchain.blocking = True
-    tx = ctx.blockchain.voting_ticket_update(
+    tx = ctx.blockchain.update_voting_ticket(
         ticket_id,
         target,
         amount,
