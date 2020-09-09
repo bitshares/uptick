@@ -30,6 +30,7 @@ from . import (
     htlc,
     tools,
     bip38,
+    ticket,
 )
 from .ui import print_message, print_table, print_tx
 
