@@ -31,6 +31,7 @@ from . import (
     tools,
     bip38,
     ticket,
+    pools,
 )
 from .ui import print_message, print_table, print_tx
 
