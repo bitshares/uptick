@@ -26,7 +26,7 @@ def pool():
 @online
 @unlock
 def create(ctx, asset_a, asset_b, share_asset, taker_fee, withdrawal_fee, account):
-    """Create a new Liquidity Pool
+    """ Create a new Liquidity Pool.
 
     ASSET_A, ASSET_B: These are the assets to be traded in the
     pool. Can be symbols or ids. Note that ASSET_A should be the one
@@ -53,6 +53,36 @@ def create(ctx, asset_a, asset_b, share_asset, taker_fee, withdrawal_fee, accoun
         share_asset,
         taker_fee,
         withdrawal_fee,
+        account=account,
+    )
+    tx.pop("trx", None)
+    print_tx(tx)
+    results = tx.get("operation_results", {})
+    print("Results: ", results)
+
+
+@pool.command()
+@click.argument("pool")
+@click.option(
+    "--account", help="Active account (else use wallet default). " +
+    "This account must be owner of the POOL."
+)
+@click.pass_context
+@online
+@unlock
+def delete(ctx, pool, account):
+    """ Delete a Liquidity Pool.
+
+    POOL: The pool to be deleted. This can be given as a pool id (e.g.
+    "1.19.x") or as the share asset symbol or id of the pool.
+
+    Note the pool must be empty (no balance of either asset) in order to
+    delete it.
+
+    """
+    ctx.blockchain.blocking = True
+    tx = ctx.blockchain.delete_liquidity_pool(
+        pool,
         account=account,
     )
     tx.pop("trx", None)
