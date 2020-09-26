@@ -137,19 +137,48 @@ def exchange(ctx, pool, sell_amount, sell_symbol, buy_amount, buy_symbol, accoun
 
 @pool.command()
 @click.argument("pool")
+@click.option(
+    "--slip", type=float,
+    help = "Add slippage percent to slippage table."
+)
+@click.option(
+    "--slip-buy", type=float,
+    help = "Slippage based on buying x% of pool."
+)
 @click.pass_context
 @online
-def describe(ctx, pool):
-    """ Describe a Liquidity Pool.
+def describe(ctx, pool, slip, slip_buy):
+    """Describe a Liquidity Pool.
 
-    Will give details of a particular liquidity pool, including component
-    assets, current price, and fee structure of the pool.
+    Gives detailed information about a particular liquidity pool, including
+    component assets, share supply, and current exchange rates, including
+    slippage estimates to help predict realizable exchange rate based on size
+    of trade, and fee structure of the pool.
 
     POOL: The pool to describe. This can be given as a pool id (e.g.
-    "1.19.x") or as the share asset symbol or id of the pool.
+    "1.19.x") or as the share asset symbol (or asset id) of the pool's share
+    asset.
+
+    Note on Slippage Estimates: Estimated trades account for pool fees, but do
+    not account for market fees of the traded assets, if any. You may need to
+    account for these yourself.
+
+    You can use the --slip option to add a slippage percent to the slippage
+    table to estimate outcomes of larger trades.  Slippage percents are based
+    on SELLING a percentage quantity of asset into the pool.  To calculate a
+    slippage based on BUYING a percentage of the pool, use the --slip-buy
+    option.  (The formula is buy_pct = sell_pct/(100% - sell_pct).)
 
     """
     # Quite messy, and desires a proper Pool object class.  T.B.D. Someday.
+    slip_pcts = [0.01, 0.05, 0.10]
+    if slip:
+        slip_pcts.append(float(slip)/100)
+        slip_pcts.sort()
+    if slip_buy:
+        pct=float(slip_buy)/100
+        slip_pcts.append(pct/(1-pct))
+        slip_pcts.sort()
     pool_id = ctx.bitshares._find_liquidity_pool(pool) # ad hoc
     data = ctx.bitshares.rpc.get_object(pool_id)
     if data:
@@ -181,13 +210,30 @@ def describe(ctx, pool):
             t.append(["Outstanding Pool Shares", "%s (%s)"%(str(share_supply),share_asset["id"])])
             t.append(["Pool Invariant (k=xy)", pool_k])
             t.append(["",""])
-            t.append(["Nominal Pool Price", Price(base=amount_a, quote=amount_b, blockchain_instance=ctx.bitshares)])
+            t.append(["Nominal Pool Price (A/B)", Price(base=amount_a, quote=amount_b, blockchain_instance=ctx.bitshares)])
+            t.append(["Nominal Pool Price (B/A)", Price(base=amount_b, quote=amount_a, blockchain_instance=ctx.bitshares)])
             t.append(["",""])
             t.append(["Price Resilience:",""])
-            t.append(["(approximate, w/o fees)",""])
-            t.append(["     1% Slippage:", "%s, or %s"%(amount_b*.01,amount_a*.01)])
-            t.append(["     5% Slippage:", "%s, or %s"%(amount_b*.05,amount_a*.05)])
-            t.append(["    10% Slippage:", "%s, or %s"%(amount_b*.1,amount_a*.1)])
+            def recv(pct):
+                return (pct/(1+pct))*((100.0-taker_fee)/100)
+            t.append(["",""])
+            t.append(["  Selling Asset A:",""])
+            t.append(["",""])
+            for sl in slip_pcts:
+                t.append([
+                    "   %4g%% Slippage"%(sl*100),
+                    "Sell %s for %s"%(amount_a*sl, amount_b*recv(sl))
+                ])
+            t.append(["",""])
+            t.append(["  Selling Asset B:",""])
+            t.append(["",""])
+            for sl in slip_pcts:
+                t.append([
+                    "   %4g%% Slippage"%(sl*100),
+                    "Sell %s for %s"%(amount_b*sl, amount_a*recv(sl))
+                ])
+            t.append(["",""])
+            t.append(["  (est. with fees)",""])
             t.append(["",""])
             t.append(["Exchange Fee", "%0.2f%%"%taker_fee])
             t.append(["Withdrawal Fee", "%0.2f%%"%withdrawal_fee])
