@@ -224,15 +224,19 @@ def exchange(ctx, pool, sell_amount, sell_symbol, buy_amount, buy_symbol, accoun
 @click.argument("pool")
 @click.option(
     "--slip", type=float,
-    help = "Add slippage percent to slippage table."
+    help = "Add a slippage percent to slippage table."
 )
 @click.option(
     "--slip-buy", type=float,
-    help = "Slippage based on buying x% of pool."
+    help = "Compute slippage based on buying x% of pool."
+)
+@click.option(
+    "-v", "--verbose", is_flag=True,
+    help = "Show some additional pool information if available."
 )
 @click.pass_context
 @online
-def describe(ctx, pool, slip, slip_buy):
+def describe(ctx, pool, slip, slip_buy, verbose):
     """Describe a Liquidity Pool.
 
     Gives detailed information about a particular liquidity pool, including
@@ -283,7 +287,16 @@ def describe(ctx, pool, slip, slip_buy):
             taker_fee = int(data.pop("taker_fee_percent"))/100
             withdrawal_fee = int(data.pop("withdrawal_fee_percent"))/100
             data.pop("id")
+            if verbose:
+                pool_desc = share_asset["options"]["description"]
+                if "description" in share_asset:
+                    pool_desc = share_asset["description"]
+                if isinstance(pool_desc, dict):
+                    pool_desc = format_tx(pool_desc)
+            # Generate Table:
             t.append(["Pool Name", "%s"%(share_asset["symbol"])])
+            if verbose:
+                t.append(["Pool Description", pool_desc])
             t.append(["Pool Id", "%s"%(pool_id)])
             t.append(["Pool Owner", "%s (%s)"%(pool_owner["name"],pool_owner["id"])])
             t.append(["Asset A", "%s (%s)"%(asset_a["symbol"],asset_a["id"])])
