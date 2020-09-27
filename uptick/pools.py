@@ -140,6 +140,47 @@ def deposit(ctx, pool, amount_a, symbol_a, amount_b, symbol_b, account):
 
 @pool.command()
 @click.argument("pool")
+@click.argument("amount", type=float)
+@click.argument("symbol")
+@click.option(
+    "--account", help="Active account (else use wallet default)."
+)
+@click.pass_context
+@online
+@unlock
+def withdraw(ctx, pool, amount, symbol, account):
+    """Withdraw stake from a Liquidity Pool.
+
+    Redeem shares in a pool for their corresponding fraction of the component
+    assets held in the pool, less a withdrawal fee.
+
+    Example: If you hold 10% of the current supply of POOL.SHARE for a pool
+    between SOMECOIN and BTS, you can "cash in" your POOL.SHARE for 10% each
+    of the pool's holdings of SOMECOIN and BTS (less the withdrawal fee).
+
+    POOL: The pool from which you are withdrawing. This can be given as a pool
+    id (e.g.  "1.19.x") or as the share asset symbol (or asset id) of the
+    pool's share asset.
+
+    AMOUNT and SYMBOL: These specify the amount of pool share asset that you
+    wish to redeem for pool holdings.  (Note: POOL and SYMBOL will be the same
+    if you identified the pool by its share asset instead of by its pool id.)
+
+    """
+    ctx.blockchain.blocking = True
+    tx = ctx.blockchain.withdraw_from_liquidity_pool(
+        pool,
+        share_amount=Amount(amount, symbol, blockchain_instance=ctx.bitshares),
+        account=account,
+    )
+    tx.pop("trx", None)
+    print_tx(tx)
+    results = tx.get("operation_results", {})
+    print("Results: ", results)
+
+
+@pool.command()
+@click.argument("pool")
 @click.argument("sell_amount", type=float)
 @click.argument("sell_symbol")
 @click.argument("buy_amount", type=float)
