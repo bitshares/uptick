@@ -96,22 +96,66 @@ def delete(ctx, pool, account):
 
 @pool.command()
 @click.argument("pool")
-@click.argument("sell_amount")
+@click.argument("amount_a", type=float)
+@click.argument("symbol_a")
+@click.argument("amount_b", type=float)
+@click.argument("symbol_b")
+@click.option(
+    "--account", help="Active account (else use wallet default)."
+)
+@click.pass_context
+@online
+@unlock
+def deposit(ctx, pool, amount_a, symbol_a, amount_b, symbol_b, account):
+    """Stake assets in a Liquidity Pool.
+
+    POOL: The pool to deposit assets into. This can be given as a pool id
+    (e.g.  "1.19.x") or as the share asset symbol (or asset id) of the pool's
+    share asset.
+
+    AMOUNT's and SYMBOL's: Specifies the amounts of each asset that will be
+    deposited into the pool.  The amounts of each asset must be of "equal
+    value" according to the pool's current exchange rate (or in other words,
+    ratio of AMOUNT_A to AMOUNT_B must be the same as the pool ratio.)  If
+    they are not equal-valued, then whichever asset is in excess will be only
+    partially deposited and the excess retained by your account.
+
+    In return for your deposit, you will receive a quantity of the pool's
+    "share asset" which will represent your stake in the pool and can be used
+    to withdraw from the pool at a later date.
+
+    """
+    ctx.blockchain.blocking = True
+    tx = ctx.blockchain.deposit_into_liquidity_pool(
+        pool,
+        amount_a=Amount(amount_a, symbol_a, blockchain_instance=ctx.bitshares),
+        amount_b=Amount(amount_b, symbol_b, blockchain_instance=ctx.bitshares),
+        account=account,
+    )
+    tx.pop("trx", None)
+    print_tx(tx)
+    results = tx.get("operation_results", {})
+    print("Results: ", results)
+
+
+@pool.command()
+@click.argument("pool")
+@click.argument("sell_amount", type=float)
 @click.argument("sell_symbol")
-@click.argument("buy_amount")
+@click.argument("buy_amount", type=float)
 @click.argument("buy_symbol")
 @click.option(
-    "--account", help="Active account (else use wallet default). " +
-    "This account must be owner of the POOL."
+    "--account", help="Active account (else use wallet default)."
 )
 @click.pass_context
 @online
 @unlock
 def exchange(ctx, pool, sell_amount, sell_symbol, buy_amount, buy_symbol, account):
-    """ Exchange assets via a Liquidity Pool.
+    """Exchange assets via a Liquidity Pool.
 
     POOL: The pool to exchange against. This can be given as a pool id (e.g.
-    "1.19.x") or as the share asset symbol or id of the pool.
+    "1.19.x") or as the share asset symbol (or asset id) of the pool's share
+    asset.
 
     SELL_AMOUNT and SELL_SYMBOL: Specifies the amount of asset that will be
     sold into the pool.
