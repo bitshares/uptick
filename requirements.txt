@@ -1,4 +1,4 @@
-bitshares>=0.3.0
+bitshares>=0.7.0
 prettytable
 click
 click-datetime

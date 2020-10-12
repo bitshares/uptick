@@ -1,10 +1,11 @@
-import sys
+# -*- coding: utf-8 -*-
 import json
 import click
+from tqdm import tqdm
 from prettytable import PrettyTable
 from bitshares.block import Block, BlockHeader
 from bitshares.account import Account
-from .decorators import onlineChain, unlockWallet
+from .decorators import onlineChain, unlockWallet, unlock
 from .ui import print_permissions, pprintOperation, print_table, print_tx
 from .main import main, config
 
@@ -84,22 +85,27 @@ def disallow(ctx, foreign_account, permission, threshold, account):
 @click.option("--exclude", type=str, help="Exclude certain types", multiple=True)
 @click.option("--limit", type=int, help="Limit number of elements", default=15)
 @click.option("--raw/--no-raw", default=False)
-def history(ctx, account, limit, type, csv, exclude, raw):
+@click.option("--memo/--no-memo", default=False)
+def history(ctx, account, limit, type, csv, exclude, raw, memo):
     """ Show history of an account
     """
     from bitsharesbase.operations import getOperationNameForId
+
+    if memo:
+        pwd = click.prompt("Current Wallet Passphrase", hide_input=True)
+        ctx.bitshares.wallet.unlock(pwd)
 
     t = [["#", "time (block)", "operation", "details"]]
 
     for a in account:
         account = Account(a, bitshares_instance=ctx.bitshares)
-        for b in account.history(limit=limit, only_ops=type, exclude_ops=exclude):
+        for b in tqdm(account.history(limit=limit, only_ops=type, exclude_ops=exclude)):
             block = BlockHeader(b["block_num"])
             row = [
                 b["id"],
                 "%s (%s)" % (block.time(), b["block_num"]),
                 "{} ({})".format(getOperationNameForId(b["op"][0]), b["op"][0]),
-                pprintOperation(b) if not raw else json.dumps(b, indent=4),
+                pprintOperation(b, memo, ctx) if not raw else json.dumps(b, indent=4),
             ]
             t.append(row)
     print_table(t)
@@ -187,6 +193,9 @@ def upgrade(ctx, account):
 @click.pass_context
 @onlineChain
 @click.option(
+    "--feepayer", nargs=1, default=None, help="Account to pay the fee from", type=str
+)
+@click.option(
     "--account",
     nargs=1,
     default=config["default_account"],
@@ -195,7 +204,7 @@ def upgrade(ctx, account):
 )
 @click.argument("account_name", nargs=1, type=str)
 @unlockWallet
-def cloneaccount(ctx, account_name, account):
+def cloneaccount(ctx, account_name, account, feepayer):
     """ Clone an account
 
         This copies the owner and active permissions as well as the
@@ -204,10 +213,14 @@ def cloneaccount(ctx, account_name, account):
     from bitsharesbase import transactions, operations
 
     account = Account(account)
+    if feepayer is None:
+        feepayer = account
+    else:
+        feepayer = Account(feepayer)
     op = {
         "fee": {"amount": 0, "asset_id": "1.3.0"},
-        "registrar": account["id"],
-        "referrer": account["id"],
+        "registrar": feepayer["id"],
+        "referrer": feepayer["id"],
         "referrer_percent": 100,
         "name": account_name,
         "owner": account["owner"],

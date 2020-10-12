@@ -4,16 +4,16 @@
 from setuptools import setup
 import sys
 
-__VERSION__ = "0.2.3"
+__version__ = "0.2.4"
 
 assert sys.version_info[0] == 3, "Uptick requires Python > 3"
 
 setup(
     name="uptick",
-    version=__VERSION__,
+    version=__version__,
     description="Command line tool to interface with the BitShares network",
     long_description=open("README.md").read(),
-    download_url="https://github.com/xeroc/uptick/tarball/" + __VERSION__,
+    download_url="https://github.com/xeroc/uptick/tarball/" + __version__,
     author="Fabian Schuh",
     author_email="Fabian@chainsquad.com",
     maintainer="Fabian Schuh",
