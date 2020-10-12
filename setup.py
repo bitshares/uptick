@@ -4,7 +4,7 @@
 from setuptools import setup
 import sys
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 assert sys.version_info[0] == 3, "Uptick requires Python > 3"
 
