@@ -1,0 +1,10 @@
+[
+  {
+    "description": "version bump",
+    "type": "patch"
+  },
+  {
+    "description": "version bump for pypi",
+    "type": "patch"
+  }
+]
