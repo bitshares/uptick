@@ -56,10 +56,13 @@ def asset(ctx, obj):
 
 
 def pubkey(ctx, obj):
-    account = ctx.bitshares.wallet.getAccountFromPublicKey(obj)
-    if account:
-        t = [["Account"]]
-        t.append([account])
+    accounts_gen = ctx.bitshares.wallet.getAccountsFromPublicKey(obj)
+    accounts = [i for i in accounts_gen]
+    if accounts:
+        t = [["Account ID", "Name"]]
+        for acc_id in accounts:
+            A = Account(acc_id)
+            t.append([acc_id, A.name])
         print_table(t)
     else:
         print_message("Public Key not known: %s" % obj, "warning")
@@ -103,7 +106,7 @@ def process_object(ctx, obj):
     elif obj.upper() == obj and re.match(r"^[A-Z][A-Z0-9\.]{2,15}$", obj):
         # Asset
         asset(ctx, obj)
-    elif re.match("^BTS.{48,55}$", obj):
+    elif re.match("^"+ctx.blockchain.prefix+".{48,55}$", obj):
         # Public Key
         pubkey(ctx, obj)
     elif re.match(r"^[a-zA-Z0-9\-\._]{2,64}$", obj):
