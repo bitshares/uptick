@@ -100,7 +100,7 @@ def process_object(ctx, obj):
     elif re.match(r"^\d*\.\d*\.\d*$", obj):
         # Object Id
         objectid(ctx, obj)
-    elif obj.upper() == obj and re.match(r"^[A-Z\.]*$", obj):
+    elif obj.upper() == obj and re.match(r"^[A-Z][A-Z0-9\.]{2,15}$", obj):
         # Asset
         asset(ctx, obj)
     elif re.match("^BTS.{48,55}$", obj):
