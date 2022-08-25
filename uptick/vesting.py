@@ -15,8 +15,7 @@ from .ui import print_tx, print_table
 @click.pass_context
 @online
 def vesting(ctx, account):
-    """ List accounts vesting balances
-    """
+    """List accounts vesting balances"""
     account = Account(account, full=True)
     t = [["vesting_id", "claimable", "balance_type"]]
     for vest in account["vesting_balances"]:
@@ -33,8 +32,7 @@ def vesting(ctx, account):
 @online
 @unlock
 def claim(ctx, vestingid, account, amount):
-    """ Claim funds from the vesting balance
-    """
+    """Claim funds from the vesting balance"""
     vesting = Vesting(vestingid)
     if amount:
         amount = Amount(float(amount), "BTS")
@@ -49,14 +47,31 @@ def claim(ctx, vestingid, account, amount):
 
 @main.command()
 @click.option("--account", default=None)
+@click.argument("owner", type=str)
+@click.argument("amount", type=float)
+@click.argument("symbol", type=str)
+@click.pass_context
+@online
+@unlock
+def create_vesting(ctx, owner, amount, symbol, account):
+    print_tx(
+        ctx.bitshares.vesting_balance_create(
+            owner,
+            Amount(amount, symbol, bitshares_instance=ctx.bitshares),
+            account=account,
+        )
+    )
+
+
+@main.command()
+@click.option("--account", default=None)
 @click.argument("amount", type=float)
 @click.argument("symbol", type=str)
 @click.pass_context
 @online
 @unlock
 def reserve(ctx, amount, symbol, account):
-    """ Reserve/Burn tokens
-    """
+    """Reserve/Burn tokens"""
     print_tx(
         ctx.bitshares.reserve(
             Amount(amount, symbol, bitshares_instance=ctx.bitshares), account=account
