@@ -5,6 +5,7 @@ from tqdm import tqdm
 from prettytable import PrettyTable
 from bitshares.block import Block, BlockHeader
 from bitshares.account import Account
+from bitshares.market import Market
 from .decorators import onlineChain, unlockWallet, unlock
 from .ui import print_permissions, pprintOperation, print_table, print_tx
 from .main import main, config
@@ -132,14 +133,23 @@ def transfer(ctx, to, amount, asset, memo, account):
 @click.pass_context
 @onlineChain
 @click.argument("accounts", nargs=-1)
-def balance(ctx, accounts):
+@click.option("--convert/--no-convert", default=False)
+def balance(ctx, accounts, convert):
     """ Show Account balances
     """
-    t = [["Account", "Amount"]]
+    head = ["Account", "Amount"]
+    if convert:
+        head.append("~valuation")
+    t = [head]
     for a in accounts:
         account = Account(a, bitshares_instance=ctx.bitshares)
         for b in account.balances:
-            t.append([str(a), str(b)])
+            row = [str(a), str(b)]
+            if convert:
+                market = Market(f"{b.symbol}/BTS")
+                ticker = market.ticker().get("latest")
+                row.append(ticker * b)
+            t.append(row)
     print_table(t)
 
 

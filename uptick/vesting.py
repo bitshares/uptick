@@ -5,6 +5,7 @@ from bitshares.amount import Amount
 from bitshares.account import Account
 from bitshares.price import Price, Order
 from bitshares.vesting import Vesting
+from bitshares.market import Market
 from .decorators import onlineChain, unlockWallet, online, unlock
 from .main import main
 from .ui import print_tx, print_table
@@ -12,15 +13,24 @@ from .ui import print_tx, print_table
 
 @main.command()
 @click.argument("account")
+@click.option("--convert/--no-convert", default=False)
 @click.pass_context
 @online
-def vesting(ctx, account):
+def vesting(ctx, account, convert):
     """List accounts vesting balances"""
     account = Account(account, full=True)
-    t = [["vesting_id", "claimable", "balance_type"]]
+    head = ["vesting_id", "claimable", "balance_type"]
+    if convert:
+        head.append("~valuation")
+    t = [head]
     for vest in account["vesting_balances"]:
         vesting = Vesting(vest)
-        t.append([vesting["id"], str(vesting.claimable), vesting["balance_type"]])
+        row = [vesting["id"], str(vesting.claimable), vesting["balance_type"]]
+        if convert:
+            market = Market(f"{vesting.claimable.symbol}/BTS")
+            ticker = market.ticker().get("latest")
+            row.append(ticker * vesting.claimable)
+        t.append(row)
     print_table(t)
 
 
